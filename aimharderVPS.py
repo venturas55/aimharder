@@ -209,26 +209,26 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
 
                         try:
                                 # Espera hasta 3 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
-                                wait = WebDriverWait(driver,5)
+                                wait = WebDriverWait(driver,3)
                                 wait.until(EC.presence_of_element_located((By.ID, 'infoDialogBox')))
                                 # Después de esperar, buscamos el div y verificamos su texto
                                 info_dialog = driver.find_element(By.ID, 'infoDialogBox')
                                 if "La clase está llena" in info_dialog.text:
                                     print(f"{fechalog} - ❌ Lista de espera llena para la clase {clase_deseada} en {box_name} con el {instructor_name} para mañana a las {class_horario}. ❌")
-                                    #send_email(                                           subject="Clase llena en AimHarder ❌",                                           body=f"La clase {clase_deseada}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {class_horario} por estar llena.",                                           to_email=email_to                                         )
+                                    send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {clase_deseada}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {class_horario} por estar llena.", to_email=email_to  )
                                     
                         except:
                                 try:
-                                    # Espera hasta 3 segundos a que aparezca el span con el texto "LISTA DE ESPERA"
-                                    #lista_espera =   WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
-                                    lista_espera = WebDriverWait(driver, 10).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
+                                    # Espera hasta 5 segundos a que aparezca el span con el texto "LISTA DE ESPERA"
+                                    #lista_espera =   WebDriverWait(driver, 5).until( EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
+                                    lista_espera = WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
                                     #print("Lista Espera: ",lista_espera)
                                     print(f"{fechalog} - ✅ Estas anotado en lista de espera par la clase {clase_deseada}  en {box_name} con el {instructor_name} para mañana a las {class_horario}. ✅")
-                                    #send_email(                                        subject="Reserva AimHarder realizada ✅",                                        body=f"✅ Estas anotado en lista de espera par la clase {clase_deseada}  en {box_name} con el {instructor_name} para mañana a las {class_horario}. ✅",                                        to_email=email_to                                    )
+                                    send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {clase_deseada}  en {box_name} con el {instructor_name} para mañana a las {class_horario}. ✅",to_email=email_to)
                                 except:
                                     #print("El div con el aviso no ha aparecido en 3 segundos.")
                                     print(f"{fechalog} - ✅ La clase {clase_deseada}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {class_horario}. ✅")
-                                    #send_email(                                        subject="Reserva AimHarder realizada ✅",                                        body=f"La clase {clase_deseada}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {class_horario}.",                                        to_email=email_to                                    )
+                                    send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {clase_deseada}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {class_horario}.",to_email=email_to)
                         break
                         
                     else:
@@ -292,10 +292,7 @@ if __name__ == "__main__":
                     aimharder_pass = config['aimharder_pass']
                     email_to = config['email']
                     #print(f"Configuración para el usuario {user_id}: {dias_deseados}, {hora_deseada}, {clase_deseada}")
-                    print(f"[{user_id}] Ejecutando con:")
-                    print(f"  Días: {dias_deseados}")
-                    print(f"  Hora: {hora_deseada}")
-                    print(f"  Clase: {clase_deseada}")
+                    print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}   Hora: {hora_deseada}   Clase: {clase_deseada}")
                     login_to_aimharder(aimharder_user, aimharder_pass, clase_deseada, hora_deseada, dias_deseados,email_to)
 
     except Exception as e:
