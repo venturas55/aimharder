@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 import traceback
+from funciones import get_current_clases
 load_dotenv()
 
 app = Flask(__name__)
@@ -45,6 +46,8 @@ class_times = {
     '13': '20:00 - 21:00',
     '14': '21:00 - 22:00'
 }
+current_clases= get_current_clases()
+print("Clases actuales: ", current_clases)
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -99,7 +102,7 @@ def dashboard():
     #hora, dias = getData()
     user_data = get_user_data_from_mysql()
     #print("hora: " , hora, "   === dias: ",dias)
-    return render_template("index.html", class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'])   
+    return render_template("index.html", class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],current_clases=current_clases)   
 
 def get_user_data_from_mysql():
     connection = get_db_connection()
@@ -213,7 +216,7 @@ def register():
         print("ID: ", cur.lastrowid)
         cur.execute(
             "INSERT INTO configs (id, clase, hora, dias,aimharder_user,aimharder_pass) VALUES (%s,%s,%s, %s, %s, %s)",
-            (cur.lastrowid, "HYROX-endurance", "[lunes,Miercoles,Viernes]", "08:00-09:00","dfgh@fg.com", "dfh@345")
+            (cur.lastrowid, "HYROX-Endurance", "[lunes,Miercoles,Viernes]", "08:00-09:00","dfgh@fg.com", "dfh@345")
         )
         connection.commit()  # Confirmar la transacción
         cur.close()

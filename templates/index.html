@@ -98,11 +98,20 @@
                     </button>
                   </div>
                 </div>
-                <div class="mb-3">
+                 <div class="mb-3">
                   <label for="clase" class="form-label">Clase deseada</label>
-                  <input type="text" class="form-control" id="clase" name="clase" placeholder="HYROX-Endurance" required
-                    value="{{ clase if clase else '' }}" />
+                  <select class="form-select" id="clase" name="clase" required>
+                    <option value="" disabled>
+                      Selecciona una clase...
+                    </option>
+                    {% for value in current_clases %}
+                    <option value="{{ value }}" {% if clase==value %} selected {% endif %}>
+                      {{ value }}
+                    </option>
+                    {% endfor %}
+                  </select>
                 </div>
+
               </div>
               <!-- Fin de la sección avanzada -->
 
