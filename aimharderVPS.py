@@ -28,9 +28,9 @@ conn = pymysql.connect(
     cursorclass=pymysql.cursors.DictCursor
 )
 # Default class time
-dias_deseados = ['Lunes', 'Miercoles', 'Viernes']  # <- Esta línea se actualizará automáticamente
-hora_deseada = '08:00 - 09:00'  # Default time
-clase_deseada = 'HYROX-EnduranceE'  # Default class name
+#dias_deseados = ['Lunes', 'Miercoles', 'Viernes']  # <- Esta línea se actualizará automáticamente
+#hora_deseada = '08:00 - 09:00'  # Default time
+#clase_deseada = 'HYROX-EnduranceE'  # Default class name
 
 
 # Accede a las variables
@@ -66,6 +66,8 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
     if tomorrow_name not in dias_deseados:
         print(f"{fechalog} - ⏭️ Mañana es {tomorrow_name}, no está en los días seleccionados ({dias_deseados}). No se hace reserva.")
         exit()
+    else:
+        print(f"{fechalog} - ⏭️ Mañana es {tomorrow_name}, está en los días seleccionados ({dias_deseados}). Haciendo reserva...")
 
 
     # Set up Chrome options
