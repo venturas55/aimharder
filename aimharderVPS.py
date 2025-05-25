@@ -28,8 +28,8 @@ conn = pymysql.connect(
     cursorclass=pymysql.cursors.DictCursor
 )
 # Default class time
-dias_deseados = ['LunesE', 'MiercolEes', 'ViernEes']  # <- Esta línea se actualizará automáticamente
-hora_deseada = '08:05 - 09:05'  # Default time
+dias_deseados = ['Lunes', 'Miercoles', 'Viernes']  # <- Esta línea se actualizará automáticamente
+hora_deseada = '08:00 - 09:00'  # Default time
 clase_deseada = 'HYROX-EnduranceE'  # Default class name
 
 
@@ -50,21 +50,21 @@ fechalog= str(today) + " " + ahora.strftime("%H:%M")
 
 def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_deseados,email_to):
     # Mapea weekday() a nombres
-    week_map = {
-        1: 'Lunes',
-        2: 'Martes',
-        3: 'Miercoles',
-        4: 'Jueves',
-        5: 'Viernes',
-        6: 'Sábado',
-        0: 'Domingo'
+    tomorrow_week_map = {
+        6: 'Lunes',
+        0: 'Martes',
+        1: 'Miercoles',
+        2: 'Jueves',
+        3: 'Viernes',
+        4: 'Sábado',
+        5: 'Domingo'
     }
 
-    today_name = week_map[datetime.today().weekday()]
-    #print(f"Hoy es {today_name}")
+    tomorrow_name = tomorrow_week_map[datetime.today().weekday()]
+    #print(f"Hoy es {tomorrow_name}")
     #print(f"Los días seleccionados son: {dias_deseados}")
-    if today_name not in dias_deseados:
-        print(f"⏭️ Hoy es {today_name}, mañana no está en los días seleccionados ({dias_deseados}). No se hace reserva.")
+    if tomorrow_name not in dias_deseados:
+        print(f"{fechalog} - ⏭️ Mañana es {tomorrow_name}, no está en los días seleccionados ({dias_deseados}). No se hace reserva.")
         exit()
 
 
