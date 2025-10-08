@@ -12,6 +12,8 @@ import sys
 import pymysql
 import json
 import smtplib
+import tempfile
+import shutil, glob
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
 load_dotenv()
@@ -19,6 +21,13 @@ DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")  # Reemplaza con tu nombre de usuario de MySQL
 DB_PASS = os.getenv("DB_PASS") # Reemplaza con tu contraseña de MySQL
 DB_NAME = os.getenv("DB_NAME")  # Reemplaza con el nombre de tu base de datos
+
+
+for old_profile in glob.glob("/tmp/aimharder-profile-*"):
+    try:
+        shutil.rmtree(old_profile)
+    except Exception:
+        pass
 
 conn = pymysql.connect(
     host=DB_HOST,
@@ -61,8 +70,8 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
     }
 
     tomorrow_name = tomorrow_week_map[datetime.today().weekday()]
-    #print(f"Hoy es {tomorrow_name}")
-    #print(f"Los días seleccionados son: {dias_deseados}")
+    print(f"Hoy es {tomorrow_name}")
+    print(f"Los días seleccionados son: {dias_deseados}")
     if tomorrow_name not in dias_deseados:
         print(f"{fechalog} - ⏭️ Mañana es {tomorrow_name}, no está en los días seleccionados ({dias_deseados}). No se hace reserva.")
         exit()
@@ -79,6 +88,7 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--verbose")  # Chrome imprimirá muchos logs
     
     # For VPS environment
     chrome_options.add_argument("--remote-debugging-port=9222")
@@ -87,6 +97,16 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
     # Set environment variables for VPS
     os.environ['WDM_LOG_LEVEL'] = '0'
     os.environ['WDM_LOCAL'] = '1'
+
+
+    # Crear directorio temporal único
+    tmpdir = tempfile.mkdtemp(prefix="aimharder-profile-")
+    print("User data dir que vamos a usar:", tmpdir)
+    # Usar el directorio temporal para el perfil
+    chrome_options.add_argument(f"--user-data-dir={tmpdir}")
+
+    chrome_log_path = "/tmp/chrome_debug.log"
+    chrome_options.add_argument(f"--log-path={chrome_log_path}")
     
      # Initialize Chromium driver for VPS
     try:
@@ -117,7 +137,7 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
     
     try:
         # Navigate to aimharder.com
-        driver.get("https://www.aimharder.com/login")
+        driver.get("https://login.aimharder.com/")
         
         # Wait for the login form to load
         wait = WebDriverWait(driver, 10)
@@ -254,6 +274,7 @@ def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_dese
     finally:
         # Close the browser
         driver.quit()
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 def send_email(subject, body, to_email):
     from_email = email_account  

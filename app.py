@@ -4,9 +4,7 @@ import os
 import json
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
-import re
 import traceback
-from funciones import get_current_clases
 load_dotenv()
 
 app = Flask(__name__)
@@ -29,7 +27,36 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor  # Para obtener resultados como diccionarios
     )
 
-class_times = {
+def get_current_clases_from_db():
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT class_name FROM current_classes")
+        result = cur.fetchall()
+    conn.close()
+    return set(r['class_name'] for r in result)
+
+def get_current_hours_from_db():
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT hora FROM current_hours")
+        result = cur.fetchall()
+    conn.close()
+    
+    # Ordenar horarios por hora de inicio
+    def sort_key(hora_str):
+        # Extrae la hora de inicio como número, ej: '08:00 - 09:00' -> 800
+        start = hora_str.split('-')[0].strip()
+        h, m = map(int, start.split(':'))
+        return h * 60 + m
+
+    sorted_hours = sorted([r['hora'] for r in result], key=sort_key)
+    
+    # Crear diccionario con índice como string
+    return {str(i): sorted_hours[i] for i in range(len(sorted_hours))}
+
+
+
+""" class_times = {
     '0': '07:00 - 08:00',
     '1': '08:00 - 09:00',
     '2': '09:00 - 10:00',
@@ -45,8 +72,14 @@ class_times = {
     '12': '19:00 - 20:00',
     '13': '20:00 - 21:00',
     '14': '21:00 - 22:00'
-}
-current_clases= get_current_clases()
+} """
+class_times = get_current_hours_from_db()
+current_clases= get_current_clases_from_db()
+#current_clases=set()
+#current_clases.add("Cross MD")
+#current_clases.add("HYROX-Endurance")
+#current_clases.add("Grappling")
+#current_clases.add("B. Jiu-jitsu Principiante")
 print("Clases actuales: ", current_clases)
 
 @app.route("/", methods=["GET", "POST"])
@@ -226,6 +259,7 @@ def register():
         return redirect(url_for('login'))
 
     return render_template("register.html")
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5050)
