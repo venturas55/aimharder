@@ -10,6 +10,7 @@ CREATE TABLE usuarios (
 
 CREATE TABLE configs (
   id INT(11) NOT NULL PRIMARY KEY,
+  gym VARCHAR(100) DEFAULT NULL,
   clase VARCHAR(100) DEFAULT NULL,
   dias VARCHAR(250) DEFAULT NULL,
   hora VARCHAR(200) DEFAULT NULL,
@@ -19,11 +20,17 @@ CREATE TABLE configs (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'tabla de configs';
 
 CREATE TABLE current_classes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    class_name VARCHAR(255) NOT NULL
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT(11),
+  usuario VARCHAR(50) NOT NULL,
+  class_name VARCHAR(255) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES usuarios(id)
 );
 
 CREATE TABLE current_hours (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    hora VARCHAR(255) NOT NULL
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT(11),
+  usuario VARCHAR(50) NOT NULL,
+  hora VARCHAR(255) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES usuarios(id)
 );

@@ -50,7 +50,7 @@
             <h2 class="card-title text-center mb-4">
               Configuración de la reserva automatizada
             </h2>
-            <form method="post">
+            <form method="post" action="{{ url_for('guardar_basico') }}">
               <div class="mb-3">
                 <label for="time_slot" class="form-label">Horario deseado</label>
                 <select class="form-select" id="time_slot" name="time_slot" required>
@@ -59,6 +59,20 @@
                   </option>
                   {% for key, value in class_times.items() %}
                   <option value="{{ key }}" {% if hora==value %} selected {% endif %}>
+                    {{ value }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="clase" class="form-label">Clase deseada</label>
+                <select class="form-select" id="clase" name="clase" required>
+                  <option value="" disabled>
+                    Selecciona una clase...
+                  </option>
+                  {% for value in current_clases %}
+                  <option value="{{ value }}" {% if clase==value %} selected {% endif %}>
                     {{ value }}
                   </option>
                   {% endfor %}
@@ -76,56 +90,59 @@
                   {% endfor %}
                 </div>
               </div>
-              <!-- Botón para mostrar/ocultar sección avanzada -->
-              <div class="mb-3">
-                <button type="button" class="btn btn-outline-secondary" id="toggleAdvancedBtn"
-                  onclick="toggleAdvancedFields()">Mostrar configuración avanzada</button>
-              </div>
-              <!-- Sección avanzada colapsable -->
-              <div id="advancedFields" style="display: none;">
-                <div class="mb-3">
-                  <label for="aimharder_user" class="form-label">Usuario AimHarder</label>
-                  <input type="text" class="form-control" id="aimharder_user" name="aimharder_user"
-                    placeholder="user de aimharder" required value="{{ aimharder_user if aimharder_user else '' }}" />
-                </div>
-                <div class="mb-3">
-                  <label for="aimharder_pass" class="form-label">Pass AimHarder</label>
-                  <div class="input-group">
-                    <input type="password" class="form-control" id="aimharder_pass" name="aimharder_pass"
-                      placeholder="pass de aimharder" required value="{{ aimharder_pass if aimharder_pass else '' }}" />
-                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
-                      <i class="bi bi-eye" id="togglePassIcon"></i>
-                    </button>
-                  </div>
-                </div>
-                 <div class="mb-3">
-                  <label for="clase" class="form-label">Clase deseada</label>
-                  <select class="form-select" id="clase" name="clase" required>
-                    <option value="" disabled>
-                      Selecciona una clase...
-                    </option>
-                    {% for value in current_clases %}
-                    <option value="{{ value }}" {% if clase==value %} selected {% endif %}>
-                      {{ value }}
-                    </option>
-                    {% endfor %}
-                  </select>
-                </div>
+              <button type="submit" name="action" value="guardar_basico" class="btn btn-primary">
+                Guardar Configuración Básica
+              </button>
 
-              </div>
-              <!-- Fin de la sección avanzada -->
-
-              <div class="d-grid">
-                <button type="submit" class="btn btn-primary">
-                  Guardar Configuración
-                </button>
-              </div>
             </form>
+
           </div>
         </div>
       </div>
+
+      <div class="col-md-8">
+        <div class="card shadow rounded-4">
+          <!-- Botón para mostrar/ocultar sección avanzada -->
+          <div class="mb-3">
+            <button type="button" class="btn btn-outline-secondary" id="toggleAdvancedBtn"
+              onclick="toggleAdvancedFields()">Mostrar configuración avanzada</button>
+          </div>
+          <!-- Sección avanzada colapsable -->
+          <form method="post" action="{{ url_for('guardar_avanzado') }}">
+            <div id="advancedFields" style="display: none;">
+              <div class="mb-3">
+                <label for="aimharder_user" class="form-label">Usuario AimHarder</label>
+                <input type="text" class="form-control" id="aimharder_user" name="aimharder_user"
+                  placeholder="user de aimharder" required value="{{ aimharder_user if aimharder_user else '' }}" />
+              </div>
+
+              <div class="mb-3">
+                <label for="aimharder_pass" class="form-label">Pass AimHarder</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="aimharder_pass" name="aimharder_pass"
+                    placeholder="pass de aimharder" required value="{{ aimharder_pass if aimharder_pass else '' }}" />
+                  <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
+                    <i class="bi bi-eye" id="togglePassIcon"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="gym" class="form-label">GYM (prefijo en AimHarder)</label>
+                <input type="text" class="form-control" id="gym" name="gym" placeholder="GYM de aimharder" required
+                  value="{{ gym if gym else '' }}" />
+              </div>
+
+            </div>
+            <!-- Fin de la sección avanzada -->
+            <div class="d-grid col-4">
+              <button type="submit" name="action" value="guardar_avanzado" class="btn btn-success">
+                Guardar Configuración Avanzada
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
     crossorigin="anonymous"></script>

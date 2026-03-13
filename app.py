@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 import traceback
 load_dotenv()
-
 app = Flask(__name__)
 
 # Configuración de la base de datos
@@ -27,18 +26,18 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor  # Para obtener resultados como diccionarios
     )
 
-def get_current_clases_from_db():
+def get_current_clases_from(usuario):
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("SELECT class_name FROM current_classes")
+        cur.execute("SELECT class_name FROM current_classes WHERE usuario = %s", (usuario,))
         result = cur.fetchall()
     conn.close()
     return set(r['class_name'] for r in result)
 
-def get_current_hours_from_db():
+def get_current_hours_from(usuario):
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("SELECT hora FROM current_hours")
+        cur.execute("SELECT hora FROM current_hours WHERE usuario = %s", (usuario,))
         result = cur.fetchall()
     conn.close()
     
@@ -53,8 +52,6 @@ def get_current_hours_from_db():
     
     # Crear diccionario con índice como string
     return {str(i): sorted_hours[i] for i in range(len(sorted_hours))}
-
-
 
 """ class_times = {
     '0': '07:00 - 08:00',
@@ -73,14 +70,12 @@ def get_current_hours_from_db():
     '13': '20:00 - 21:00',
     '14': '21:00 - 22:00'
 } """
-class_times = get_current_hours_from_db()
-current_clases= get_current_clases_from_db()
+
 #current_clases=set()
 #current_clases.add("Cross MD")
 #current_clases.add("HYROX-Endurance")
 #current_clases.add("Grappling")
 #current_clases.add("B. Jiu-jitsu Principiante")
-print("Clases actuales: ", current_clases)
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -119,23 +114,41 @@ def dashboard():
     
     dias, hora ,clase,aimharder_user,aimharder_pass = None,None,None, None, None  # Inicializar estas variables fuera del bloque if
     
-    if request.method == "POST":
-        selected_id = request.form.get("time_slot")
-        selected_time = class_times.get(selected_id)
-        selected_days = request.form.getlist('week_days')
-        clase = request.form.get('clase')
-        aimharder_user = request.form.get('aimharder_user')
-        aimharder_pass = request.form.get('aimharder_pass')
+    class_times = get_current_hours_from(session['usuario'])
+    current_clases= get_current_clases_from(session['usuario'])
+        
 
-        if selected_time:
-            update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass)
-            flash(f"Horario de {clase} actualizado a: {selected_time} los días {', '.join(selected_days)}", 'success')
-            return redirect(url_for('dashboard'))  
-    
     #hora, dias = getData()
     user_data = get_user_data_from_mysql()
     #print("hora: " , hora, "   === dias: ",dias)
-    return render_template("index.html", class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],current_clases=current_clases)   
+    return render_template("index.html", class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],gym=user_data['gym'],current_clases=current_clases)   
+
+@app.route("/guardar_basico", methods=["POST"])
+def guardar_basico():
+        if request.method == "POST":
+            print("basico")
+            selected_id = request.form.get("time_slot")
+            selected_time = class_times.get(selected_id)
+            selected_days = request.form.getlist('week_days')
+            clase = request.form.get('clase')
+            aimharder_user = request.form.get('aimharder_user')
+            aimharder_pass = request.form.get('aimharder_pass')
+            gym = request.form.get('gym')
+
+            if selected_time:
+                update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass,gym,session['id'])
+                flash(f"Horario de {clase} actualizado a: {selected_time} los días {', '.join(selected_days)}", 'success')
+                return redirect(url_for('dashboard'))  
+        pass
+
+@app.route("/guardar_avanzado", methods=["POST"])
+def guardar_avanzado():
+        if request.method == "POST":
+            print("avanzado")
+            aimharder_user = request.form.get('aimharder_user')
+            aimharder_pass = request.form.get('aimharder_pass')
+            gym = request.form.get('gym')
+            return redirect(url_for('dashboard'))  
 
 def get_user_data_from_mysql():
     connection = get_db_connection()
@@ -151,9 +164,10 @@ def get_user_data_from_mysql():
         connection.close()
         return None
 
-def update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass):
+def update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass,gym,id):
     #print("selected_time: ", selected_time)
-    path = "aimharderVPS.py"
+    path = os.path.join("scripts", f"aimharderVPS{id}.py")  # ejemplo guardando en carpeta 'scripts'
+    print(path)
     try:
         """  with open(path, "r", encoding="utf-8") as f:
             code = f.read()
@@ -190,16 +204,17 @@ def update_target_file(selected_time, selected_days, clase,aimharder_user,aimhar
         # Usamos UPSERT: si el ID ya existe, se actualizan los campos; si no, se inserta
         cur.execute(
             """
-            INSERT INTO configs (id, clase, dias, hora, aimharder_user, aimharder_pass) 
-            VALUES (%s, %s,%s,%s, %s, %s)
+            INSERT INTO configs (id, clase, dias, hora, aimharder_user, aimharder_pass,gym) 
+            VALUES (%s, %s,%s,%s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE 
                 clase = VALUES(clase),
                 dias = VALUES(dias),
                 hora = VALUES(hora),
                 aimharder_user = VALUES(aimharder_user),
-                aimharder_pass = VALUES(aimharder_pass)
+                aimharder_pass = VALUES(aimharder_pass),
+                gym = VALUES(gym)
             """,
-            (session["id"], str(clase),json.dumps(selected_days), str(selected_time),aimharder_user,aimharder_pass)
+            (session["id"], str(clase),json.dumps(selected_days), str(selected_time),aimharder_user,aimharder_pass,gym)
         )
         connection.commit()  # Confirmar la transacción
         cur.close()
