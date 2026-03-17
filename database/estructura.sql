@@ -20,18 +20,18 @@ CREATE TABLE configs (
   FOREIGN KEY (id) REFERENCES usuarios(id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'tabla de configs';
 
-/* CREATE TABLE current_classes (
+CREATE TABLE current_classes (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT(11),
-  usuario VARCHAR(50) NOT NULL,
+  user_id INT(11) NOT NULL,
+  usuario VARCHAR(50),
   class_name VARCHAR(255) NOT NULL,
   FOREIGN KEY (user_id) REFERENCES usuarios(id)
-); */
+);
 
 CREATE TABLE current_hours (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT(11),
-  usuario VARCHAR(50) NOT NULL,
+  user_id INT(11) NOT NULL,
+  usuario VARCHAR(50) ,
   hora VARCHAR(255) NOT NULL,
   FOREIGN KEY (user_id) REFERENCES usuarios(id)
 );
