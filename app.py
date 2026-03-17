@@ -148,7 +148,7 @@ def guardar_basico():
         connection = get_db_connection()
         cursor = connection.cursor()
         if request.method == "POST":
-            dias = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sábado']
+            dias = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo']
             horario = {}
             for d in dias:
                 hora = request.form.get(f"{d}_hora")
@@ -159,7 +159,6 @@ def guardar_basico():
                         "clase": clase
                     }
                 if hora and clase:
-                
                     cursor.execute("""
                         INSERT INTO bookings (user_id, dia, hora, clase)
                         VALUES (%s,%s,%s,%s)
