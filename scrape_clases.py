@@ -136,7 +136,7 @@ def save_classes_to_db(classes,horas):
 def get_usuarios():
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("SELECT * FROM usuarios u left join configs c where c.id=u.id")
+        cur.execute("SELECT * FROM usuarios u left join configs c ON c.id=u.id")
         result = cur.fetchall()
     conn.close()
     return result          
