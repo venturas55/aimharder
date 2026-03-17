@@ -11,6 +11,7 @@ CREATE TABLE usuarios (
 CREATE TABLE configs (
   id INT(11) NOT NULL PRIMARY KEY,
   gym VARCHAR(100) DEFAULT NULL,
+  periodicidad ENUM('daily','weekly') NOT NULL,
   clase VARCHAR(100) DEFAULT NULL,
   dias VARCHAR(250) DEFAULT NULL,
   hora VARCHAR(200) DEFAULT NULL,
@@ -34,3 +35,15 @@ CREATE TABLE current_hours (
   hora VARCHAR(255) NOT NULL,
   FOREIGN KEY (user_id) REFERENCES usuarios(id)
 );
+
+CREATE TABLE bookings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  dia ENUM('Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo') NOT NULL,
+  hora VARCHAR(255) NOT NULL,
+  clase VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES usuarios(id)
+);
+ALTER TABLE bookings
+ADD UNIQUE KEY unique_user_day (user_id, dia);

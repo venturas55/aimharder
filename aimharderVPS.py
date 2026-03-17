@@ -57,7 +57,7 @@ ahora = datetime.now()
 today = date.today()
 fechalog= str(today) + " " + ahora.strftime("%H:%M")
 
-def login_to_aimharder(username, password, clase_deseada, hora_deseada,dias_deseados,email_to):
+def login_to_aimharder(username, password,gym, clase_deseada, hora_deseada,dias_deseados,email_to):
     # Mapea weekday() a nombres
     tomorrow_week_map = {
         6: 'Lunes',
@@ -303,7 +303,7 @@ if __name__ == "__main__":
         with conn:
             with conn.cursor() as cur:
                 # Obtener configuraciones de todos los usuarios que tengan una
-                cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass from usuarios u LEFT JOIN configs c ON u.id=c.id")
+                cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym from usuarios u LEFT JOIN configs c ON u.id=c.id")
                 configs = cur.fetchall()
 
                 for config in configs:
@@ -313,10 +313,11 @@ if __name__ == "__main__":
                     clase_deseada = config['clase']
                     aimharder_user = config['aimharder_user']
                     aimharder_pass = config['aimharder_pass']
+                    gym = config['gym']
                     email_to = config['email']
                     #print(f"Configuración para el usuario {user_id}: {dias_deseados}, {hora_deseada}, {clase_deseada}")
                     print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}   Hora: {hora_deseada}   Clase: {clase_deseada}")
-                    login_to_aimharder(aimharder_user, aimharder_pass, clase_deseada, hora_deseada, dias_deseados,email_to)
+                    login_to_aimharder(aimharder_user, aimharder_pass,gym, clase_deseada, hora_deseada, dias_deseados,email_to)
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL al hacer reserva: {str(e)}")

@@ -26,18 +26,26 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor  # Para obtener resultados como diccionarios
     )
 
-def get_current_clases_from(usuario):
+def get_current_clases_from():
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("SELECT class_name FROM current_classes WHERE usuario = %s", (usuario,))
+        cur.execute("SELECT class_name FROM current_classes WHERE usuario = %s", (session['usuario'],))
         result = cur.fetchall()
     conn.close()
     return set(r['class_name'] for r in result)
 
-def get_current_hours_from(usuario):
+def get_horarios():
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("SELECT hora FROM current_hours WHERE usuario = %s", (usuario,))
+        cur.execute("SELECT * FROM bookings WHERE user_id = %s", (session['id'],))
+        result = cur.fetchall()
+    conn.close()
+    return result          
+
+def get_current_hours_from():
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT hora FROM current_hours WHERE usuario = %s", (session['usuario'],))
         result = cur.fetchall()
     conn.close()
     
@@ -114,40 +122,60 @@ def dashboard():
     
     dias, hora ,clase,aimharder_user,aimharder_pass = None,None,None, None, None  # Inicializar estas variables fuera del bloque if
     
-    class_times = get_current_hours_from(session['usuario'])
-    current_clases= get_current_clases_from(session['usuario'])
-        
+    class_times = get_current_hours_from()
+    current_clases= get_current_clases_from()
+    horario_lista= get_horarios()
+    horario = { h['dia']: {'hora': h['hora'], 'clase': h['clase']} for h in horario_lista }
+    print(horario)
 
     #hora, dias = getData()
     user_data = get_user_data_from_mysql()
     #print("hora: " , hora, "   === dias: ",dias)
-    return render_template("index.html", class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],gym=user_data['gym'],current_clases=current_clases)   
+    return render_template("index.html", horario=horario,class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],gym=user_data['gym'],current_clases=current_clases)   
 
 @app.route("/guardar_basico", methods=["POST"])
 def guardar_basico():
+        connection = get_db_connection()
+        cursor = connection.cursor()
         if request.method == "POST":
             print("basico")
-            selected_id = request.form.get("time_slot")
-            selected_time = class_times.get(selected_id)
-            selected_days = request.form.getlist('week_days')
-            clase = request.form.get('clase')
-            aimharder_user = request.form.get('aimharder_user')
-            aimharder_pass = request.form.get('aimharder_pass')
-            gym = request.form.get('gym')
+            dias = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sábado']
+            horario = {}
+            for d in dias:
+                hora = request.form.get(f"{d}_hora")
+                clase = request.form.get(f"{d}_clase")
+                if hora and clase:
+                    horario[d] = {
+                        "hora": hora,
+                        "clase": clase
+                    }
+                if hora and clase:
+                
+                    cursor.execute("""
+                        INSERT INTO bookings (user_id, dia, hora, clase)
+                        VALUES (%s,%s,%s,%s)
+                        ON DUPLICATE KEY UPDATE
+                            hora = VALUES(hora),
+                            clase = VALUES(clase)
+                    """, (session['id'], d, hora, clase))
 
-            if selected_time:
-                update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass,gym,session['id'])
-                flash(f"Horario de {clase} actualizado a: {selected_time} los días {', '.join(selected_days)}", 'success')
-                return redirect(url_for('dashboard'))  
-        pass
+            connection.commit()
 
+            print(horario)
+               
+            #update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass,gym,session['id'])
+            flash(f"Horarios actualizados", 'success')
+            return redirect(url_for('dashboard'))  
+       
 @app.route("/guardar_avanzado", methods=["POST"])
 def guardar_avanzado():
         if request.method == "POST":
             print("avanzado")
+            print(request.form)
             aimharder_user = request.form.get('aimharder_user')
             aimharder_pass = request.form.get('aimharder_pass')
             gym = request.form.get('gym')
+            update_config(aimharder_user,aimharder_pass,gym)
             return redirect(url_for('dashboard'))  
 
 def get_user_data_from_mysql():
@@ -197,6 +225,16 @@ def update_target_file(selected_time, selected_days, clase,aimharder_user,aimhar
         with open(path, "w", encoding="utf-8") as f:
             f.write(code)
         """
+       
+        return f"Reserva automática actualizada a: {selected_time} los días {', '.join(selected_days)}"
+    except Exception as e:
+        print("Error:", str(e))
+        traceback.print_exc()
+        return f"Error: {str(e)}"
+
+
+def update_config(aimharder_user,aimharder_pass,gym):
+    try:
         # Conectar a la base de datos
         connection = get_db_connection()
         cur = connection.cursor()
@@ -204,23 +242,19 @@ def update_target_file(selected_time, selected_days, clase,aimharder_user,aimhar
         # Usamos UPSERT: si el ID ya existe, se actualizan los campos; si no, se inserta
         cur.execute(
             """
-            INSERT INTO configs (id, clase, dias, hora, aimharder_user, aimharder_pass,gym) 
-            VALUES (%s, %s,%s,%s, %s, %s, %s)
+            INSERT INTO configs (id, aimharder_user, aimharder_pass,gym) 
+            VALUES (%s, %s,%s,%s )
             ON DUPLICATE KEY UPDATE 
-                clase = VALUES(clase),
-                dias = VALUES(dias),
-                hora = VALUES(hora),
                 aimharder_user = VALUES(aimharder_user),
                 aimharder_pass = VALUES(aimharder_pass),
                 gym = VALUES(gym)
             """,
-            (session["id"], str(clase),json.dumps(selected_days), str(selected_time),aimharder_user,aimharder_pass,gym)
+            (session["id"], aimharder_user,aimharder_pass,gym)
         )
         connection.commit()  # Confirmar la transacción
         cur.close()
         connection.close()
-
-        return f"Reserva automática actualizada a: {selected_time} los días {', '.join(selected_days)}"
+        return "Reconfiguracion actualizada"
     except Exception as e:
         print("Error:", str(e))
         traceback.print_exc()

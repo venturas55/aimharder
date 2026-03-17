@@ -12,8 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-
-
+gym="hybridboxgraudefault"
 
 
 # Conexión con MySQL usando PyMySQL
@@ -89,7 +88,7 @@ def scrape_current_classes():
     
     try:
         # Abrir la página web
-        driver.get("https://hybridboxgrau.aimharder.com/schedule")
+        driver.get("https://"+gym+".aimharder.com/schedule")
 
         # Esperar a que la página cargue completamente y los bloques estén disponibles
         WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "bloqueClase")))
@@ -122,7 +121,7 @@ def scrape_current_classes():
 def save_classes_to_db(classes,horas):
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("DELETE FROM current_classes")  # Limpiamos la tabla
+        cur.execute("DELETE FROM current_classes where ")  # Limpiamos la tabla
         cur.execute("DELETE FROM current_hours")  # Limpiamos la tabla
         for c in classes:
             cur.execute("INSERT INTO current_classes (class_name) VALUES (%s)", (c,))
