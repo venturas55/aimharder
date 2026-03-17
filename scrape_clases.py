@@ -146,7 +146,7 @@ def get_usuarios():
 if __name__ == "__main__":
     usuarios=get_usuarios()
     for usuario in usuarios:
-        #print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']}")
+        print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']}")
         clases,horas = scrape_current_classes(usuario['gym'])
         datos = {
             "id": usuario['id'],
@@ -155,9 +155,9 @@ if __name__ == "__main__":
             "clases":clases,
             "horas":horas
         }
-        print(datos)
+        #print(datos)
         save_classes_to_db(datos)
-        print("SCRAPPING - Clases actualizadas:", clases, " y horas " ,horas)
+        print("SCRAPPING - Clases actualizadas para ",usuario['usuario']," : \n", clases, " y horas " ,horas)
 
 
 
