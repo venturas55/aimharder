@@ -151,6 +151,7 @@ if __name__ == "__main__":
         datos = {
             "id": id,
             "gym": gym,
+            "usuario":usuario,
             "clases":clases,
             "horas":horas
         }
