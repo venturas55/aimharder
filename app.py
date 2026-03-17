@@ -42,6 +42,15 @@ def get_horarios():
     conn.close()
     return result          
 
+def get_config():
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT * FROM configs WHERE id = %s", (session['id'],))
+        result = cur.fetchone()
+    conn.close()
+    return result          
+
+
 def get_current_hours_from():
     conn = get_db_connection()
     with conn.cursor() as cur:
@@ -125,20 +134,20 @@ def dashboard():
     class_times = get_current_hours_from()
     current_clases= get_current_clases_from()
     horario_lista= get_horarios()
+    config= get_config()
     horario = { h['dia']: {'hora': h['hora'], 'clase': h['clase']} for h in horario_lista }
-    print(horario)
+    print(config)
 
     #hora, dias = getData()
     user_data = get_user_data_from_mysql()
     #print("hora: " , hora, "   === dias: ",dias)
-    return render_template("index.html", horario=horario,class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],gym=user_data['gym'],current_clases=current_clases)   
+    return render_template("index.html", config=config,horario=horario,class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],gym=user_data['gym'],current_clases=current_clases)   
 
 @app.route("/guardar_basico", methods=["POST"])
 def guardar_basico():
         connection = get_db_connection()
         cursor = connection.cursor()
         if request.method == "POST":
-            print("basico")
             dias = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sábado']
             horario = {}
             for d in dias:
@@ -170,12 +179,12 @@ def guardar_basico():
 @app.route("/guardar_avanzado", methods=["POST"])
 def guardar_avanzado():
         if request.method == "POST":
-            print("avanzado")
             print(request.form)
             aimharder_user = request.form.get('aimharder_user')
             aimharder_pass = request.form.get('aimharder_pass')
             gym = request.form.get('gym')
-            update_config(aimharder_user,aimharder_pass,gym)
+            periodicidad = request.form.get('periodicidad')
+            update_config(aimharder_user,aimharder_pass,gym,periodicidad)
             return redirect(url_for('dashboard'))  
 
 def get_user_data_from_mysql():
@@ -233,7 +242,7 @@ def update_target_file(selected_time, selected_days, clase,aimharder_user,aimhar
         return f"Error: {str(e)}"
 
 
-def update_config(aimharder_user,aimharder_pass,gym):
+def update_config(aimharder_user,aimharder_pass,gym,periodicidad):
     try:
         # Conectar a la base de datos
         connection = get_db_connection()
@@ -242,14 +251,15 @@ def update_config(aimharder_user,aimharder_pass,gym):
         # Usamos UPSERT: si el ID ya existe, se actualizan los campos; si no, se inserta
         cur.execute(
             """
-            INSERT INTO configs (id, aimharder_user, aimharder_pass,gym) 
-            VALUES (%s, %s,%s,%s )
+            INSERT INTO configs (id, aimharder_user, aimharder_pass,gym,periodicidad) 
+            VALUES (%s, %s,%s,%s,%s )
             ON DUPLICATE KEY UPDATE 
                 aimharder_user = VALUES(aimharder_user),
                 aimharder_pass = VALUES(aimharder_pass),
-                gym = VALUES(gym)
+                gym = VALUES(gym),
+                periodicidad = VALUES(periodicidad)
             """,
-            (session["id"], aimharder_user,aimharder_pass,gym)
+            (session["id"], aimharder_user,aimharder_pass,gym,periodicidad)
         )
         connection.commit()  # Confirmar la transacción
         cur.close()

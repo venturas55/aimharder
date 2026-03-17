@@ -133,10 +133,24 @@ def save_classes_to_db(classes,horas):
 
     conn.close()
 
+def get_usuarios():
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        cur.execute("SELECT * FROM usuarios")
+        result = cur.fetchall()
+    conn.close()
+    return result          
+
+
 if __name__ == "__main__":
-    clases,horas = scrape_current_classes()
-    save_classes_to_db(clases,horas)
-    print("SCRAPPING - Clases actualizadas:", clases, " y horas " ,horas)
+    usuarios=get_usuarios()
+    for usuario in usuarios:
+        print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']} ")
+
+
+    #clases,horas = scrape_current_classes()
+    #save_classes_to_db(clases,horas)
+    #print("SCRAPPING - Clases actualizadas:", clases, " y horas " ,horas)
 
 
 
