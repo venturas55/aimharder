@@ -125,9 +125,9 @@ def save_classes_to_db(datos):
         cur.execute("DELETE FROM current_classes where user_id=%s",(datos['id'],))  # Limpiamos las tablas
         cur.execute("DELETE FROM current_hours where user_id=%s",(datos['id'],)) 
         for c in datos['clases']:
-            cur.execute("INSERT INTO current_classes (user_id,usuario,class_name) VALUES (%s,%s)", (datos['id'],datos['usuario'],c,))
+            cur.execute("INSERT INTO current_classes (user_id,usuario,class_name) VALUES (%s,%s,%s)", (datos['id'],datos['usuario'],c,))
         for h in datos['horas']:
-            cur.execute("INSERT INTO current_hours (user_id,usuario,hora) VALUES (%s,%s)", (datos['id'],datos['usuario'],h,))
+            cur.execute("INSERT INTO current_hours (user_id,usuario,hora) VALUES (%s,%s,%s)", (datos['id'],datos['usuario'],h,))
         conn.commit()
 
 
