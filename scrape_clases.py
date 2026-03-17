@@ -30,7 +30,8 @@ for old_profile in glob.glob("/tmp/aimharderFlask-profile-*"):
         shutil.rmtree(old_profile)
     except Exception:
         pass
-def scrape_current_classes():
+
+def scrape_current_classes(gym):
     # Set up Chrome options
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless=new")  # New headless mode for Chrome
@@ -118,15 +119,15 @@ def scrape_current_classes():
         driver.quit()
         shutil.rmtree(tmpdir, ignore_errors=True)
 
-def save_classes_to_db(classes,horas):
+def save_classes_to_db(datos):
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("DELETE FROM current_classes where ")  # Limpiamos la tabla
-        cur.execute("DELETE FROM current_hours")  # Limpiamos la tabla
-        for c in classes:
-            cur.execute("INSERT INTO current_classes (class_name) VALUES (%s)", (c,))
-        for c in horas:
-            cur.execute("INSERT INTO current_hours (hora) VALUES (%s)", (c,))
+        cur.execute("DELETE FROM current_classes where user_id=%s",(datos['id'],))  # Limpiamos las tablas
+        cur.execute("DELETE FROM current_hours where user_id=%s",(datos['id'],)) 
+        for c in datos['clases']:
+            cur.execute("INSERT INTO current_classes (user_id,class_name) VALUES (%s,%s)", (datos['id'],c,))
+        for h in datos['horas']:
+            cur.execute("INSERT INTO current_hours (user_id,hora) VALUES (%s,%s)", (datos['id'],h,))
         conn.commit()
 
 
@@ -146,11 +147,16 @@ if __name__ == "__main__":
     usuarios=get_usuarios()
     for usuario in usuarios:
         print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']}")
-
-
-    #clases,horas = scrape_current_classes()
-    #save_classes_to_db(clases,horas)
-    #print("SCRAPPING - Clases actualizadas:", clases, " y horas " ,horas)
+        clases,horas = scrape_current_classes(usuario['gym'])
+        datos = {
+            "id": id,
+            "gym": gym,
+            "clases":clases,
+            "horas":horas
+        }
+        print(datos)
+        save_classes_to_db(datos)
+        print("SCRAPPING - Clases actualizadas:", clases, " y horas " ,horas)
 
 
 
