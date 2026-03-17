@@ -146,12 +146,12 @@ def get_usuarios():
 if __name__ == "__main__":
     usuarios=get_usuarios()
     for usuario in usuarios:
-        print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']}")
+        #print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']}")
         clases,horas = scrape_current_classes(usuario['gym'])
         datos = {
-            "id": id,
-            "gym": gym,
-            "usuario":usuario,
+            "id": usuario['id'],
+            "gym": usuario['gym'],
+            "usuario":usuario['usuario'],
             "clases":clases,
             "horas":horas
         }
