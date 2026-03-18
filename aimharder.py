@@ -106,6 +106,7 @@ def book_class(driver,reserva_deseada,nextClase):
     try:
         # Find all class blocks
         class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
+        print(class_blocks)
         # Look for the {clase_deseada}  class at 8:00 - 9:00
         #for block in class_blocks:
         i = 0
