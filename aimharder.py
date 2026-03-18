@@ -143,7 +143,7 @@ def book_class(driver,reserva_deseada,nextClase):
                 except:
                     print("sin cookie")
                 try:
-                    print("B:",block)
+                    print("B:",block.get_attribute("outerHTML"))
                     reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
                     reserve_link.click()
                     print(f"{fechalog} - Clicked on Reservar button")
