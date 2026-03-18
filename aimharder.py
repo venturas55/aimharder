@@ -342,7 +342,7 @@ if __name__ == "__main__":
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
-                        """ print(f" {aimharder_user} tiene daily")
+                        print(f" {aimharder_user} tiene daily")
                         tomorrow_name = tomorrow_week_map[today.weekday()-1] #quitar el menos 1, es para pruebas despues de medianoche
                         
                         #print("Mañana",tomorrow_name)
@@ -361,7 +361,7 @@ if __name__ == "__main__":
                                 print(f"Error en login de {aimharder_user}")
                         else:
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user}. No se hace reserva.")
-                            break """
+                            break
                         
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
@@ -379,7 +379,8 @@ if __name__ == "__main__":
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(nextClase," - ",reservas[i])
                                 if driver_conexion and reservas[i]['activo']:
-                                    book_class(driver_conexion,reservas[i],nextClase)
+                                    #book_class(driver_conexion,reservas[i],nextClase)
+                                    print(f"RESERVA {reservas[i]} REALIZADA {nextClase}")
                                 else:
                                     print(f"Error en login de {aimharder_user}")
                             driver_conexion.quit()

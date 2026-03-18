@@ -74,8 +74,16 @@ WantedBy=multi-user.target
 
     journalctl -u aimharderFlaskApp -f
 
+    -----
+    se ha creado un aimharder2 para javi:
+
+    sudo systemctl enable aimharder2
+    sudo systemctl start aimharder2
+    sudo systemctl stop aimharder2
+
 5. Check Gunicorn logs
 journalctl -u aimharderFlaskApp.service -b --no-pager | tail -n 50
+journalctl -u aimharder2.service -b --no-pager | tail -n 50
 
 
 
