@@ -84,15 +84,13 @@ def get_text_or_empty(parent, by, value):
     elements = parent.find_elements(by, value)
     return elements[0].text.strip() if elements else ""
 
-def book_class(driver,reserva_deseada):
+def book_class(driver,reserva_deseada,nextClase):
 
     if(today.weekday() == 6):
             #print(f"{fechalog} - Hoy es domingo")
             nextWeek = driver.find_element(By.ID, "nextWeek")
             nextWeek.click()
 
-    tomorrow = today + timedelta(days=1)
-    nextClase = "wds"+tomorrow.strftime("%Y%m%d")
     #print(f"{fechalog} - Hoy es {today} y la clase es {nextClase}")
     anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
     anchor.click()
@@ -153,7 +151,7 @@ def book_class(driver,reserva_deseada):
                         info_dialog = driver.find_element(By.ID, 'infoDialogBox')
                         if "La clase está llena" in info_dialog.text:
                             print(f"{fechalog} - ❌ Lista de espera llena para la clase {reserva_deseada['clase']} en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ❌")
-                            send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
+                            #send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
                             
                 except:
                         try:
@@ -162,103 +160,11 @@ def book_class(driver,reserva_deseada):
                             lista_espera = WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
                             #print("Lista Espera: ",lista_espera)
                             print(f"{fechalog} - ✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅")
-                            send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
+                            #send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
                         except:
                             #print("El div con el aviso no ha aparecido en 3 segundos.")
                             print(f"{fechalog} - ✅ La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}. ✅")
-                            send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
-                break
-                
-            else:
-                print(f"{fechalog} - Could not find {reserva_deseada['clase']} class in the list")
-            
-    except Exception as e:
-        print(f"{fechalog} - Error finding button or clicking RESERVAR {reserva_deseada['clase']} a las {reserva_deseada['hora']}   ERROR: {str(e)}")
-        #send_email(            subject="Error al hacer reserva ❌",            body=f"Ocurrió un error al reservar:\n{str(e)}",            to_email=email_to_dev        )
-
-def book_tomorrow_class(driver,reserva_deseada):
-
-    if(today.weekday() == 6):
-            #print(f"{fechalog} - Hoy es domingo")
-            nextWeek = driver.find_element(By.ID, "nextWeek")
-            nextWeek.click()
-
-    tomorrow = today + timedelta(days=1)
-    nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-    #print(f"{fechalog} - Hoy es {today} y la clase es {nextClase}")
-    anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
-    anchor.click()
-     # Espera hasta 15 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
-    wait = WebDriverWait(driver,15)
-    # Espera a que el contenido anterior desaparezca (clave)
-    wait.until(EC.staleness_of(anchor))
-    wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
-    #time.sleep(1)
-    print(f"{fechalog} - Clicked day link")
-    
-    # Find the {clase_deseada}  class
-    try:
-        # Find all class blocks
-        class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-        # Look for the {clase_deseada}  class at 8:00 - 9:00
-        #for block in class_blocks:
-        i = 0
-        while True:
-            class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-            if i >= len(class_blocks):
-                break
-            block = class_blocks[i]
-            # procesa block...
-            i += 1
-            class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-            block = class_blocks[i]
-            # Check if this block contains the H{clase_deseada}  class name
-            #print(f"{fechalog} - Clase: ", block.text)
-            class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
-            class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
-            print(f"DEBUG -> '{class_name}' | '{class_horario}'")
-            print(f"BUSCO -> '{reserva_deseada['clase']}' | '{reserva_deseada['hora']}'")   
-            if reserva_deseada['clase'] in class_name and class_horario == reserva_deseada['hora']:
-                print("encontrado la clase deseada")
-                instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
-                box_name =  get_text_or_empty(block, By.CLASS_NAME, "rvBox")
-                # Find and click the reservation link within this block
-                print(instructor_name, box_name)
-                reserve_link = block.find_element(By.XPATH, ".//a[contains(text(), 'Reservar')]")
-                print("kaka")
-                #driver.execute_script("arguments[0].scrollIntoView();", reserve_link)
-                #print()
-                try:
-                        #eucookielaw = driver.find_element(By.ID, 'eucookielaw')
-                        #print(eucookielaw.get_attribute('outerHTML'))
-                        driver.execute_script("document.getElementById('eucookielaw').style.display = 'none';")
-                except:
-                    print("sin cookie")
-                reserve_link.click()
-                print(f"{fechalog} - Clicked on Reservar button")
-
-                try:
-                        # Espera hasta 3 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
-                        wait = WebDriverWait(driver,3)
-                        wait.until(EC.presence_of_element_located((By.ID, 'infoDialogBox')))
-                        # Después de esperar, buscamos el div y verificamos su texto
-                        info_dialog = driver.find_element(By.ID, 'infoDialogBox')
-                        if "La clase está llena" in info_dialog.text:
-                            print(f"{fechalog} - ❌ Lista de espera llena para la clase {reserva_deseada['clase']} en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ❌")
-                            send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
-                            
-                except:
-                        try:
-                            # Espera hasta 5 segundos a que aparezca el span con el texto "LISTA DE ESPERA"
-                            #lista_espera =   WebDriverWait(driver, 5).until( EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
-                            lista_espera = WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
-                            #print("Lista Espera: ",lista_espera)
-                            print(f"{fechalog} - ✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅")
-                            send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
-                        except:
-                            #print("El div con el aviso no ha aparecido en 3 segundos.")
-                            print(f"{fechalog} - ✅ La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}. ✅")
-                            send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
+                            #send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
                 break
                 
             else:
@@ -277,7 +183,6 @@ def book_week(driver,reservas_deseadas):
         nextClase = "wds"+tomorrow.strftime("%Y%m%d")
         print(nextClase," - ",reservas_deseadas[i-1])
         #book_class(driver,reservas_deseadas[i-1],nextClase)
-
 
 def login_to_aimharder(username, password):
 
@@ -459,7 +364,9 @@ if __name__ == "__main__":
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, está en los días seleccionados de {aimharder_user} {dias_deseados}. Haciendo reserva...")
 
                             if driver_conexion:
-                                book_tomorrow_class(driver_conexion,clase_manana)
+                                tomorrow = today + timedelta(days=1)
+                                nextClase = "wds"+tomorrow.strftime("%Y%m%d")
+                                book_class(driver_conexion,clase_manana,nextClase)
                             else:
                                 print(f"Error en login de {aimharder_user}")
                         
@@ -468,11 +375,12 @@ if __name__ == "__main__":
                         print("semanal")
                         driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
                         if(today.weekday() == 6 and driver_conexion):
+                        #if True:    
                             print(f"{fechalog} - Hoy es {today.weekday()}")
                             print(reservas)
                             for i in range(len(reservas)):
                                 proxima=dias.get(reservas[i]['dia'])
-                                print("P",proxima)
+                                #print("P",proxima)
                                 tomorrow = today + timedelta(days=proxima)
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(nextClase," - ",reservas[i])
@@ -482,4 +390,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL al hacer reserva: {str(e)}")
-       # send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
+       #send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
