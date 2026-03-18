@@ -144,9 +144,12 @@ def book_class(driver,reserva_deseada,nextClase):
                         print("cookie2")
                 except:
                     print("sin cookie")
-                reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                reserve_link.click()
-                print(f"{fechalog} - Clicked on Reservar button")
+                try:
+                    reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
+                    reserve_link.click()
+                    print(f"{fechalog} - Clicked on Reservar button")
+                except Exception as e:
+                    print("Puta mierda:",e)
 
                 try:
                         # Espera hasta 3 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
