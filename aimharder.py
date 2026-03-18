@@ -117,8 +117,7 @@ def book_class(driver,reserva_deseada,nextClase):
             block = class_blocks[i]
             # procesa block...
             i += 1
-            class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-            block = class_blocks[i]
+            print("B1:",block.get_attribute("outerHTML"))
             # Check if this block contains the H{clase_deseada}  class name
             #print(f"{fechalog} - Clase: ", block.text)
             class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
