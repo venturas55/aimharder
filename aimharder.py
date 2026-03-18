@@ -91,7 +91,7 @@ def book_class(driver,reserva_deseada,nextClase):
 
     #print(f"{fechalog} - Hoy es {today} y la clase es {nextClase}")
     anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
-    print("anchor",anchor)
+    print("anchor",anchor.get_attribute('outerHTML'))
     anchor.click()
      # Espera hasta 15 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
     # Espera a que el contenido anterior desaparezca (clave)
@@ -342,7 +342,7 @@ if __name__ == "__main__":
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
-                        print(f" {aimharder_user} tiene daily")
+                        """ print(f" {aimharder_user} tiene daily")
                         tomorrow_name = tomorrow_week_map[today.weekday()-1] #quitar el menos 1, es para pruebas despues de medianoche
                         
                         #print("Mañana",tomorrow_name)
@@ -361,13 +361,13 @@ if __name__ == "__main__":
                                 print(f"Error en login de {aimharder_user}")
                         else:
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user}. No se hace reserva.")
-                            break
+                            break """
                         
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
                         print(f" {aimharder_user} tiene weekly")
-                        #if(today.weekday() == 6 ):
-                        if True:
+                        if(today.weekday() == 2 ):
+                        #if True:
                             print(f"{fechalog} - Hoy es {today.weekday()}")
                             #print(reservas)
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
