@@ -379,18 +379,19 @@ if __name__ == "__main__":
                         if True:
                             print(f"{fechalog} - Hoy es {today.weekday()}")
                             #print(reservas)
+                            driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
+
                             for i in range(len(reservas)):
                                 proxima=dias.get(reservas[i]['dia'])
                                 #print("P",proxima)
                                 tomorrow = today + timedelta(days=proxima)
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(nextClase," - ",reservas[i])
-                                driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
                                 if driver_conexion:
                                     book_class(driver_conexion,reservas[i],nextClase)
-                                    driver_conexion.quit()
                                 else:
                                     print(f"Error en login de {aimharder_user}")
+                            driver_conexion.quit()
                         else:
                             print("No es domingo")
 
