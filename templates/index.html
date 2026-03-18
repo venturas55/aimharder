@@ -144,8 +144,8 @@
                     <tr>
                       <!-- Checkbox -->
                       <td>
-                        <input type="checkbox" class="day-check" name="dias" value="{{ day }}" id="{{ day }}" {% if
-                          horario[day] is defined %} checked {% endif %}>
+                        <input type="checkbox" class="day-check" name="{{day}}_activo" value="{{ day }}" id="{{ day }}" {% if
+                          horario[day]['activo'] %} checked {% endif %}>
                         <span>{{ day }}</span>
                       </td>
 

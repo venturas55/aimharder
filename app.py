@@ -134,8 +134,8 @@ def dashboard():
     current_clases= get_current_clases_from()
     horario_lista= get_horarios()
     config= get_config()
-    horario = { h['dia']: {'hora': h['hora'], 'clase': h['clase']} for h in horario_lista }
-    print(config)
+    horario = { h['dia']: {'hora': h['hora'], 'clase': h['clase'],'activo':h['activo']} for h in horario_lista }
+    print("horario:",horario)
 
     #hora, dias = getData()
     user_data = get_user_data_from_mysql()
@@ -150,21 +150,24 @@ def guardar_basico():
             dias = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo']
             horario = {}
             for d in dias:
-                hora = request.form.get(f"{d}_hora")
-                clase = request.form.get(f"{d}_clase")
-                if hora and clase:
-                    horario[d] = {
-                        "hora": hora,
-                        "clase": clase
-                    }
-                if hora and clase:
-                    cursor.execute("""
-                        INSERT INTO bookings (user_id, dia, hora, clase)
-                        VALUES (%s,%s,%s,%s)
-                        ON DUPLICATE KEY UPDATE
-                            hora = VALUES(hora),
-                            clase = VALUES(clase)
-                    """, (session['id'], d, hora, clase))
+                hora = request.form.get(f"{d}_hora") or ""
+                clase = request.form.get(f"{d}_clase") or ""
+                activo = 1 if request.form.get(f"{d}_activo") else 0
+                print(activo)
+                
+                horario[d] = {
+                    "hora": hora,
+                    "clase": clase,
+                    "activo": activo
+                }
+                cursor.execute("""
+                    INSERT INTO bookings (user_id, dia, hora, clase, activo)
+                    VALUES (%s,%s,%s,%s,%s)
+                    ON DUPLICATE KEY UPDATE
+                        hora = VALUES(hora),
+                        clase = VALUES(clase),
+                        activo = VALUES(activo)
+                """, (session['id'], d, hora, clase,activo))
 
             conn.commit()
             conn.close()
