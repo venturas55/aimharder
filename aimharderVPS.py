@@ -348,9 +348,9 @@ if __name__ == "__main__":
                     print(reservas)
                     dias_deseados = [item['dia'] for item in reservas]
                     print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
+
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
-                        driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
                         tomorrow_name = tomorrow_week_map[today.weekday()-1] #quitar el menos 1, es para pruebas despues de medianoche
                         #print(reservas)
                         print("Mañana",tomorrow_name)
@@ -362,11 +362,12 @@ if __name__ == "__main__":
                             break
                         else:
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, está en los días seleccionados de {aimharder_user} {dias_deseados}. Haciendo reserva...")
-
+                            driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
                             if driver_conexion:
                                 tomorrow = today + timedelta(days=1)
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 book_class(driver_conexion,clase_manana,nextClase)
+                                driver_conexion.quit()
                             else:
                                 print(f"Error en login de {aimharder_user}")
                         
