@@ -343,7 +343,7 @@ if __name__ == "__main__":
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
                         print(f" {aimharder_user} tiene daily")
-                        tomorrow_name = tomorrow_week_map[today.weekday()-1] #quitar el menos 1, es para pruebas despues de medianoche
+                        tomorrow_name = tomorrow_week_map[today.weekday()] #quitar el menos 1, es para pruebas despues de medianoche
                         
                         #print("Mañana",tomorrow_name)
                         clase_manana = next(item for item in reservas if item['dia'] == tomorrow_name)
