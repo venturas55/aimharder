@@ -133,13 +133,15 @@ def book_class(driver,reserva_deseada,nextClase):
                 # Find and click the reservation link within this block
                 #print("DESCRIPCION",instructor_name, box_name, rvClaseDesc)
                 #reserve_link = block.find_element(By.XPATH, ".//a[contains(text(), 'Reservar')]")
-                reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                print("RL",reserve_link)
-                driver.execute_script("arguments[0].scrollIntoView();", reserve_link)
+                #reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
+                #print("RL",reserve_link)
+                #driver.execute_script("arguments[0].scrollIntoView();", reserve_link)
                 try:
                         #eucookielaw = driver.find_element(By.ID, 'eucookielaw')
                         #print(eucookielaw.get_attribute('outerHTML'))
+                        print("cookie")
                         driver.execute_script("document.getElementById('eucookielaw').style.display = 'none';")
+                        print("cookie2")
                 except:
                     print("sin cookie")
                 reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
