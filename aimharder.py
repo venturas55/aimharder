@@ -345,15 +345,16 @@ if __name__ == "__main__":
                     email_to = usuario['email']
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
-                    print(reservas)
+                    #print(reservas)
                     dias_deseados = [item['dia'] for item in reservas]
-                    print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
+                    #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
+                        print(f" {aimharder_user} tiene daily")
                         tomorrow_name = tomorrow_week_map[today.weekday()-1] #quitar el menos 1, es para pruebas despues de medianoche
-                        #print(reservas)
-                        print("Mañana",tomorrow_name)
+                        
+                        #print("Mañana",tomorrow_name)
                         clase_manana = next(item for item in reservas if item['dia'] == tomorrow_name)
                         #print(f"Mañana es {clase_manana}")
                         #print(f"Los días seleccionados son: {dias_deseados}")
@@ -373,10 +374,11 @@ if __name__ == "__main__":
                         
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
-                        print("semanal")
-                        if(today.weekday() == 6 ):
+                        print(f" {aimharder_user} tiene weekly")
+                        #if(today.weekday() == 6 ):
+                        if True:
                             print(f"{fechalog} - Hoy es {today.weekday()}")
-                            print(reservas)
+                            #print(reservas)
                             for i in range(len(reservas)):
                                 proxima=dias.get(reservas[i]['dia'])
                                 #print("P",proxima)
