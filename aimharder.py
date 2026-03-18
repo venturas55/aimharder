@@ -378,7 +378,7 @@ if __name__ == "__main__":
                                 tomorrow = today + timedelta(days=proxima)
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(nextClase," - ",reservas[i])
-                                if driver_conexion:
+                                if driver_conexion and reservas[i]['activo']:
                                     book_class(driver_conexion,reservas[i],nextClase)
                                 else:
                                     print(f"Error en login de {aimharder_user}")
