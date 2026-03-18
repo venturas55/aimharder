@@ -80,11 +80,13 @@ dias = {
 }
 
 
+
 def get_text_or_empty(parent, by, value):
     elements = parent.find_elements(by, value)
     return elements[0].text.strip() if elements else ""
 
 def book_class(driver,reserva_deseada,nextClase):
+    wait = WebDriverWait(driver,15)
 
     if(today.weekday() == 6):
             #print(f"{fechalog} - Hoy es domingo")
@@ -95,29 +97,18 @@ def book_class(driver,reserva_deseada,nextClase):
     anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
     anchor.click()
      # Espera hasta 15 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
-    wait = WebDriverWait(driver,15)
     # Espera a que el contenido anterior desaparezca (clave)
     wait.until(EC.staleness_of(anchor))
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
     #time.sleep(1)
     print(f"{fechalog} - Clicked day link {nextClase}")
-    
     # Find the {clase_deseada}  class
     try:
         # Find all class blocks
         class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
         #print(class_blocks)
         # Look for the {clase_deseada}  class at 8:00 - 9:00
-        #for block in class_blocks:
-        i = 0
-        while True:
-            class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-            if i >= len(class_blocks):
-                break
-            block = class_blocks[i]
-            # procesa block...
-            i += 1
-            print("B1:",block.get_attribute("outerHTML"))
+        for block in class_blocks:
             # Check if this block contains the H{clase_deseada}  class name
             #print(f"{fechalog} - Clase: ", block.text)
             class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
@@ -151,7 +142,6 @@ def book_class(driver,reserva_deseada,nextClase):
 
                 try:
                         # Espera hasta 3 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
-                        wait = WebDriverWait(driver,3)
                         wait.until(EC.presence_of_element_located((By.ID, 'infoDialogBox')))
                         # Después de esperar, buscamos el div y verificamos su texto
                         info_dialog = driver.find_element(By.ID, 'infoDialogBox')
@@ -242,6 +232,8 @@ def login_to_aimharder(username, password):
 
         # Initialize the driver
         driver = webdriver.Chrome(options=chrome_options)
+        wait = WebDriverWait(driver,15)
+
         print(f"{fechalog} - Successfully initialized Chromium driver")
 
     except Exception as e:
@@ -253,7 +245,6 @@ def login_to_aimharder(username, password):
         driver.get("https://login.aimharder.com/")
         
         # Wait for the login form to load
-        wait = WebDriverWait(driver, 10)
         try:
             wait.until(EC.presence_of_element_located((By.ID, "mail")))
             print(f"{fechalog} - Login form found")
