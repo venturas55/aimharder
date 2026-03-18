@@ -366,7 +366,7 @@ if __name__ == "__main__":
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
                         print(f" {aimharder_user} tiene weekly")
-                        if(today.weekday() == 2 ):
+                        if(today.weekday() == 6 ):
                         #if True:
                             print(f"{fechalog} - Hoy es {today.weekday()}")
                             #print(reservas)
