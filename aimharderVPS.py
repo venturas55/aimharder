@@ -247,7 +247,7 @@ def login_to_aimharder(username, password):
         driver.get("https://login.aimharder.com/")
         
         # Wait for the login form to load
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 15)
         try:
             wait.until(EC.presence_of_element_located((By.ID, "mail")))
             print(f"{fechalog} - Login form found")
@@ -375,7 +375,6 @@ if __name__ == "__main__":
                         print("semanal")
                         driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
                         if(today.weekday() == 6 and driver_conexion):
-                        #if True:    
                             print(f"{fechalog} - Hoy es {today.weekday()}")
                             print(reservas)
                             for i in range(len(reservas)):

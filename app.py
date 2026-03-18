@@ -50,7 +50,6 @@ def get_config():
     conn.close()
     return result          
 
-
 def get_current_hours_from():
     conn = get_db_connection()
     with conn.cursor() as cur:
@@ -101,8 +100,8 @@ def login():
         password = request.form['contrasena']
 
         # Conectar a la base de datos
-        connection = get_db_connection()
-        cur = connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
 
         # Consulta para encontrar el usuario por nombre de usuario
         cur.execute("SELECT * FROM usuarios WHERE usuario = %s", (usuario,))
@@ -120,7 +119,7 @@ def login():
             flash('Nombre de usuario o contraseña incorrectos', 'danger')
 
         cur.close()
-        connection.close()
+        conn.close()
 
     return render_template("login.html")
 
@@ -145,8 +144,8 @@ def dashboard():
 
 @app.route("/guardar_basico", methods=["POST"])
 def guardar_basico():
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
         if request.method == "POST":
             dias = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo']
             horario = {}
@@ -167,7 +166,8 @@ def guardar_basico():
                             clase = VALUES(clase)
                     """, (session['id'], d, hora, clase))
 
-            connection.commit()
+            conn.commit()
+            conn.close()
 
             print(horario)
                
@@ -187,17 +187,17 @@ def guardar_avanzado():
             return redirect(url_for('dashboard'))  
 
 def get_user_data_from_mysql():
-    connection = get_db_connection()
-    cur = connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute("SELECT * FROM configs WHERE id = %s", (session['id'],))
     user_data = cur.fetchone()
     if user_data:
         cur.close()
-        connection.close()
+        conn.close()
         return user_data
     else:
         cur.close()
-        connection.close()
+        conn.close()
         return None
 
 def update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass,gym,id):
@@ -244,8 +244,8 @@ def update_target_file(selected_time, selected_days, clase,aimharder_user,aimhar
 def update_config(aimharder_user,aimharder_pass,gym,periodicidad):
     try:
         # Conectar a la base de datos
-        connection = get_db_connection()
-        cur = connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         # Verificar si existe
         # Usamos UPSERT: si el ID ya existe, se actualizan los campos; si no, se inserta
         cur.execute(
@@ -260,9 +260,9 @@ def update_config(aimharder_user,aimharder_pass,gym,periodicidad):
             """,
             (session["id"], aimharder_user,aimharder_pass,gym,periodicidad)
         )
-        connection.commit()  # Confirmar la transacción
+        conn.commit()  # Confirmar la transacción
         cur.close()
-        connection.close()
+        conn.close()
         return "Reconfiguracion actualizada"
     except Exception as e:
         print("Error:", str(e))
@@ -287,8 +287,8 @@ def register():
         hashed_password = generate_password_hash(password)
 
         # Conectar a la base de datos
-        connection = get_db_connection()
-        cur = connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
 
         # Verificar si el usuario ya existe
         cur.execute("SELECT * FROM usuarios WHERE usuario = %s", (usuario,))
@@ -296,7 +296,7 @@ def register():
         if existing_user:
             flash('El nombre de usuario ya existe. Elige otro.', 'danger')
             cur.close()
-            connection.close()
+            conn.close()
             return redirect(url_for('register'))
 
         # Insertar el nuevo usuario en la base de datos
@@ -309,9 +309,9 @@ def register():
             "INSERT INTO configs (id, clase, hora, dias,aimharder_user,aimharder_pass) VALUES (%s,%s,%s, %s, %s, %s)",
             (cur.lastrowid, "HYROX-Endurance", "[lunes,Miercoles,Viernes]", "08:00-09:00","dfgh@fg.com", "dfh@345")
         )
-        connection.commit()  # Confirmar la transacción
+        conn.commit()  # Confirmar la transacción
         cur.close()
-        connection.close()
+        conn.close()
 
         flash('¡Usuario registrado exitosamente! Ahora puedes iniciar sesión.', 'success')
         return redirect(url_for('login'))
