@@ -100,7 +100,7 @@ def book_class(driver,reserva_deseada,nextClase):
     wait.until(EC.staleness_of(anchor))
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
     #time.sleep(1)
-    print(f"{fechalog} - Clicked day link")
+    print(f"{fechalog} - Clicked day link {nextClase}")
     
     # Find the {clase_deseada}  class
     try:
@@ -128,12 +128,13 @@ def book_class(driver,reserva_deseada,nextClase):
                 print("encontrado la clase deseada")
                 instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
                 box_name =  get_text_or_empty(block, By.CLASS_NAME, "rvBox")
+                rvClaseDesc =  get_text_or_empty(block, By.CLASS_NAME, "rvClaseDesc")
                 # Find and click the reservation link within this block
-                print(instructor_name, box_name)
-                reserve_link = block.find_element(By.XPATH, ".//a[contains(text(), 'Reservar')]")
-                print("kaka")
-                #driver.execute_script("arguments[0].scrollIntoView();", reserve_link)
-                #print()
+                print("DESCRIPCION",instructor_name, box_name, rvClaseDesc)
+                #reserve_link = block.find_element(By.XPATH, ".//a[contains(text(), 'Reservar')]")
+                reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
+                print("RL",reserve_link)
+                driver.execute_script("arguments[0].scrollIntoView();", reserve_link)
                 try:
                         #eucookielaw = driver.find_element(By.ID, 'eucookielaw')
                         #print(eucookielaw.get_attribute('outerHTML'))
