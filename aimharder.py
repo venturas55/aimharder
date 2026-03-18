@@ -106,7 +106,7 @@ def book_class(driver,reserva_deseada,nextClase):
     try:
         # Find all class blocks
         class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-        print(class_blocks)
+        #print(class_blocks)
         # Look for the {clase_deseada}  class at 8:00 - 9:00
         #for block in class_blocks:
         i = 0
@@ -139,12 +139,11 @@ def book_class(driver,reserva_deseada,nextClase):
                 try:
                         #eucookielaw = driver.find_element(By.ID, 'eucookielaw')
                         #print(eucookielaw.get_attribute('outerHTML'))
-                        print("cookie")
                         driver.execute_script("document.getElementById('eucookielaw').style.display = 'none';")
-                        print("cookie2")
                 except:
                     print("sin cookie")
                 try:
+                    print("B:",block)
                     reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
                     reserve_link.click()
                     print(f"{fechalog} - Clicked on Reservar button")
