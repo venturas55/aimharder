@@ -247,7 +247,7 @@ def login_to_aimharder(username, password):
         driver.get("https://login.aimharder.com/")
         
         # Wait for the login form to load
-        wait = WebDriverWait(driver, 15)
+        wait = WebDriverWait(driver, 10)
         try:
             wait.until(EC.presence_of_element_located((By.ID, "mail")))
             print(f"{fechalog} - Login form found")
@@ -374,8 +374,7 @@ if __name__ == "__main__":
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
                         print("semanal")
-                        driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
-                        if(today.weekday() == 6 and driver_conexion):
+                        if(today.weekday() == 6 ):
                             print(f"{fechalog} - Hoy es {today.weekday()}")
                             print(reservas)
                             for i in range(len(reservas)):
@@ -384,9 +383,14 @@ if __name__ == "__main__":
                                 tomorrow = today + timedelta(days=proxima)
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(nextClase," - ",reservas[i])
-                                book_class(driver_conexion,reservas[i],nextClase)
+                                driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
+                                if driver_conexion:
+                                    book_class(driver_conexion,reservas[i],nextClase)
+                                    driver_conexion.quit()
+                                else:
+                                    print(f"Error en login de {aimharder_user}")
                         else:
-                            print(f"Error en login de {aimharder_user}")
+                            print("No es domingo")
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL al hacer reserva: {str(e)}")
