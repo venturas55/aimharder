@@ -144,7 +144,7 @@ def book_class(driver,reserva_deseada,nextClase):
                         info_dialog = driver.find_element(By.ID, 'infoDialogBox')
                         if "La clase está llena" in info_dialog.text:
                             print(f"{fechalog} - ❌ Lista de espera llena para la clase {reserva_deseada['clase']} en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ❌")
-                            #send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
+                            send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
                             
                 except:
                         try:
@@ -153,11 +153,11 @@ def book_class(driver,reserva_deseada,nextClase):
                             lista_espera = WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
                             #print("Lista Espera: ",lista_espera)
                             print(f"{fechalog} - ✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅")
-                            #send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
+                            send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
                         except:
                             #print("El div con el aviso no ha aparecido en 3 segundos.")
                             print(f"{fechalog} - ✅ La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}. ✅")
-                            #send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
+                            send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
                 break
                 
             else:
@@ -165,7 +165,7 @@ def book_class(driver,reserva_deseada,nextClase):
             
     except Exception as e:
         print(f"{fechalog} - Error finding button or clicking RESERVAR {reserva_deseada['clase']} a las {reserva_deseada['hora']}   ERROR: {str(e)}")
-        #send_email(            subject="Error al hacer reserva ❌",            body=f"Ocurrió un error al reservar:\n{str(e)}",            to_email=email_to_dev        )
+        send_email(            subject="Error al hacer reserva ❌",            body=f"Ocurrió un error al reservar:\n{str(e)}",            to_email=email_to_dev        )
 
 #funcion que se ejecutará un domingo
 def book_week(driver,reservas_deseadas):
@@ -389,4 +389,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL al hacer reserva: {str(e)}")
-       #send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
+        send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
