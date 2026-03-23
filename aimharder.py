@@ -131,7 +131,7 @@ def book_class(driver,reserva_deseada,nextClase):
                     print("sin cookie")
                 try:
                     reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                    print("button:",reserve_link.get_attribute("outerHTML"))
+                    #print("button:",reserve_link.get_attribute("outerHTML"))
                     reserve_link.click()
                     print(f"{fechalog} - Clicked on Reservar button")
                 except Exception as e:
@@ -379,8 +379,8 @@ if __name__ == "__main__":
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(nextClase," - ",reservas[i])
                                 if driver_conexion and reservas[i]['activo']:
-                                    #book_class(driver_conexion,reservas[i],nextClase)
-                                    print(f"RESERVA {reservas[i]} REALIZADA {nextClase}")
+                                    book_class(driver_conexion,reservas[i],nextClase)
+                                    #print(f"RESERVA {reservas[i]} REALIZADA {nextClase}")
                                 else:
                                     print(f"Error en login de {aimharder_user}")
                             driver_conexion.quit()
