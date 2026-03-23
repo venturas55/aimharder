@@ -361,7 +361,7 @@ if __name__ == "__main__":
                                 print(f"Error en login de {aimharder_user}")
                         else:
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user}. No se hace reserva.")
-                            break
+                            continue
                         
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':

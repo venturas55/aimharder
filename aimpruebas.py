@@ -36,11 +36,6 @@ conn = pymysql.connect(
     database=DB_NAME,
     cursorclass=pymysql.cursors.DictCursor
 )
-# Default class time
-#dias_deseados = ['Lunes', 'Miercoles', 'Viernes']  # <- Esta línea se actualizará automáticamente
-#hora_deseada = '08:00 - 09:00'  # Default time
-#clase_deseada = 'HYROX-EnduranceE'  # Default class name
-
 
 # Accede a las variables
 email_account = os.getenv("EMAIL_ACCOUNT")
@@ -88,6 +83,7 @@ def get_text_or_empty(parent, by, value):
 def book_class(driver,reserva_deseada,nextClase):
     wait = WebDriverWait(driver,15)
 
+    # Check if today is Sunday (6) and click next week if it is
     if(today.weekday() == 6):
             #print(f"{fechalog} - Hoy es domingo")
             nextWeek = driver.find_element(By.ID, "nextWeek")
@@ -95,12 +91,13 @@ def book_class(driver,reserva_deseada,nextClase):
 
     #print(f"{fechalog} - Hoy es {today} y la clase es {nextClase}")
     anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
+    print("anchor",anchor.get_attribute('outerHTML'))
     anchor.click()
      # Espera hasta 15 segundos para que el div con id 'infoDialogBox' esté presente en el DOM
     # Espera a que el contenido anterior desaparezca (clave)
     wait.until(EC.staleness_of(anchor))
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
-    #time.sleep(1)
+    time.sleep(3)
     print(f"{fechalog} - Clicked day link {nextClase}")
     # Find the {clase_deseada}  class
     try:
@@ -133,10 +130,10 @@ def book_class(driver,reserva_deseada,nextClase):
                 except:
                     print("sin cookie")
                 try:
-                    #print("B:",block.get_attribute("outerHTML"))
                     reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                    #reserve_link.click()
-                    print(f"{fechalog} - virtually Clicked on Reservar button")
+                    print("button:",reserve_link.get_attribute("outerHTML"))
+                    reserve_link.click()
+                    print(f"{fechalog} - Clicked on Reservar button")
                 except Exception as e:
                     print("Puta mierda:",e)
 
@@ -147,7 +144,7 @@ def book_class(driver,reserva_deseada,nextClase):
                         info_dialog = driver.find_element(By.ID, 'infoDialogBox')
                         if "La clase está llena" in info_dialog.text:
                             print(f"{fechalog} - ❌ Lista de espera llena para la clase {reserva_deseada['clase']} en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ❌")
-                            #send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
+                            send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
                             
                 except:
                         try:
@@ -156,11 +153,11 @@ def book_class(driver,reserva_deseada,nextClase):
                             lista_espera = WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
                             #print("Lista Espera: ",lista_espera)
                             print(f"{fechalog} - ✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅")
-                            #send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
+                            send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
                         except:
                             #print("El div con el aviso no ha aparecido en 3 segundos.")
                             print(f"{fechalog} - ✅ La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}. ✅")
-                            #send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
+                            send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
                 break
                 
             else:
@@ -168,7 +165,7 @@ def book_class(driver,reserva_deseada,nextClase):
             
     except Exception as e:
         print(f"{fechalog} - Error finding button or clicking RESERVAR {reserva_deseada['clase']} a las {reserva_deseada['hora']}   ERROR: {str(e)}")
-        #send_email(            subject="Error al hacer reserva ❌",            body=f"Ocurrió un error al reservar:\n{str(e)}",            to_email=email_to_dev        )
+        send_email(            subject="Error al hacer reserva ❌",            body=f"Ocurrió un error al reservar:\n{str(e)}",            to_email=email_to_dev        )
 
 #funcion que se ejecutará un domingo
 def book_week(driver,reservas_deseadas):
@@ -288,10 +285,7 @@ def login_to_aimharder(username, password):
             reservations_link.click()
             print(f"{fechalog} - Clicked reservations link")
             
-            # Wait for the class list to load
-
-            # Check if today is Sunday (6) and click next week if it is
-           
+            # Wait for the class list to load       
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
             print(f"{fechalog} - Error during login process: {str(e)}")
@@ -332,7 +326,7 @@ if __name__ == "__main__":
                 # Obtener configuraciones de todos los usuarios que tengan una
                 cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
                 usuarios = cur.fetchall()
-                #print(usuarios)
+                usuarios=usuarios # para hacer pruebas solo con el usuario tipo semanal.
                 for usuario in usuarios:
                     user_id = usuario['id']
                     aimharder_user = usuario['aimharder_user']
@@ -342,9 +336,8 @@ if __name__ == "__main__":
                     email_to = usuario['email']
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
-                    print(aimharder_user,periodicidad)
+                    #print(reservas)
                     #dias_deseados = [item['dia'] for item in reservas]
-                    dias_deseados = [item['dia'] for item in reservas if item['activo']]
                     #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
@@ -356,11 +349,8 @@ if __name__ == "__main__":
                         clase_manana = next(item for item in reservas if item['dia'] == tomorrow_name)
                         #print(f"Mañana es {clase_manana}")
                         #print(f"Los días seleccionados son: {dias_deseados}")
-                        if tomorrow_name not in dias_deseados:
-                            print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user} {dias_deseados}. No se hace reserva.")
-                            continue
-                        else:
-                            print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, está en los días seleccionados de {aimharder_user} {dias_deseados}. Haciendo reserva...")
+                        if clase_manana['activo']:
+                            print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, está en los días seleccionados de {aimharder_user}. Haciendo reserva...")
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
                             if driver_conexion:
                                 tomorrow = today + timedelta(days=1)
@@ -369,14 +359,17 @@ if __name__ == "__main__":
                                 driver_conexion.quit()
                             else:
                                 print(f"Error en login de {aimharder_user}")
+                        else:
+                            print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user}. No se hace reserva.")
+                            continue
                         
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
-                        print(f" {aimharder_user} tiene weekly")
+                        print(f" {aimharder_user} tiene weekly y hoy es {today}")
                         #if(today.weekday() == 6 ):
                         if True:
-                            #print(f"{fechalog} - Hoy es {today.weekday()}")
-                            print("RESERVAS:",reservas)
+                            print(f"{fechalog} - Hoy es {today.weekday()}")
+                            #print(reservas)
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
 
                             for i in range(len(reservas)):
@@ -387,7 +380,8 @@ if __name__ == "__main__":
                                     nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                     print(nextClase," - ",reservas[i])
                                     if driver_conexion:
-                                        book_class(driver_conexion,reservas[i],nextClase)
+                                        #book_class(driver_conexion,reservas[i],nextClase)
+                                        print(f"RESERVA {reservas[i]} REALIZADA {nextClase}")
                                     else:
                                         print(f"Error en login de {aimharder_user}")
                             driver_conexion.quit()
@@ -396,4 +390,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL al hacer reserva: {str(e)}")
-       #send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
+        send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
