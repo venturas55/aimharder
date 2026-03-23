@@ -343,7 +343,8 @@ if __name__ == "__main__":
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
                     print(aimharder_user,periodicidad)
-                    dias_deseados = [item['dia'] for item in reservas]
+                    #dias_deseados = [item['dia'] for item in reservas]
+                    dias_deseados = [item['dia'] for item in reservas if item['activo']]
                     #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
