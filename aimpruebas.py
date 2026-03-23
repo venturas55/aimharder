@@ -379,15 +379,16 @@ if __name__ == "__main__":
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
 
                             for i in range(len(reservas)):
-                                proxima=dias.get(reservas[i]['dia'])
-                                #print("P",proxima)
-                                tomorrow = today + timedelta(days=proxima)
-                                nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-                                print(nextClase," - ",reservas[i])
-                                if driver_conexion:
-                                    book_class(driver_conexion,reservas[i],nextClase)
-                                else:
-                                    print(f"Error en login de {aimharder_user}")
+                                if reservas[i]['activo']:
+                                    proxima=dias.get(reservas[i]['dia'])
+                                    #print("P",proxima)
+                                    tomorrow = today + timedelta(days=proxima)
+                                    nextClase = "wds"+tomorrow.strftime("%Y%m%d")
+                                    print(nextClase," - ",reservas[i])
+                                    if driver_conexion:
+                                        book_class(driver_conexion,reservas[i],nextClase)
+                                    else:
+                                        print(f"Error en login de {aimharder_user}")
                             driver_conexion.quit()
                         else:
                             print("No es domingo")
