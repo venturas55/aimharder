@@ -117,8 +117,8 @@ def book_class(driver,reserva_deseada,nextClase):
             print(f"BUSCO -> '{reserva_deseada['clase']}' | '{reserva_deseada['hora']}'")   
             if reserva_deseada['clase'] in class_name and class_horario == reserva_deseada['hora']:
                 print("encontrado la clase deseada")
-                #instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
-                #box_name =  get_text_or_empty(block, By.CLASS_NAME, "rvBox")
+                instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
+                box_name =  get_text_or_empty(block, By.CLASS_NAME, "rvBox")
                 #rvClaseDesc =  get_text_or_empty(block, By.CLASS_NAME, "rvClaseDesc")
                 # Find and click the reservation link within this block
                 #print("DESCRIPCION",instructor_name, box_name, rvClaseDesc)
