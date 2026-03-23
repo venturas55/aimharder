@@ -117,7 +117,7 @@ def book_class(driver, reserva_deseada, nextClase):
 
             try:
                 reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                # reserve_link.click()
+                reserve_link.click()
             except NoSuchElementException:
                 return {"status": "error", "msg": "No se encontró botón reservar"}
 
@@ -207,16 +207,6 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
             body=res["msg"],
             to_email=email_to_dev
         )
-
-#funcion que se ejecutará un domingo
-def book_week(driver,reservas_deseadas):
-    nextWeek = driver.find_element(By.ID, "nextWeek")
-    nextWeek.click()
-    for i in range(1,8):
-        tomorrow = today + timedelta(days=i)
-        nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-        print(nextClase," - ",reservas_deseadas[i-1])
-        #book_class(driver,reservas_deseadas[i-1],nextClase)
 
 def login_to_aimharder(username, password):
 
@@ -367,6 +357,7 @@ if __name__ == "__main__":
                 # Obtener configuraciones de todos los usuarios que tengan una
                 cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
                 usuarios = cur.fetchall()
+                usuarios=usuarios # para hacer pruebas solo con el usuario tipo semanal.
                 for usuario in usuarios:
                     user_id = usuario['id']
                     aimharder_user = usuario['aimharder_user']
@@ -376,60 +367,92 @@ if __name__ == "__main__":
 
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
+
                     #print(reservas)
                     #dias_deseados = [item['dia'] for item in reservas]
                     #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
-                    ##-----------------DAILY------------------- PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
+                    # ------------------ DAILY ------------------
                     if periodicidad == 'daily':
-                        print(f" ⏭️ ⏭️ {aimharder_user} tiene daily")
-                        tomorrow_name = tomorrow_week_map[today.weekday()] #quitar el menos 1, es para pruebas despues de medianoche
-                        
-                        #print("Mañana",tomorrow_name)
-                        clase_manana = next((item for item in reservas if item['dia'] == tomorrow_name),None)
-                        #print(f"Mañana es {clase_manana}")
-                        #print(f"Los días seleccionados son: {dias_deseados}")
-                        if clase_manana['activo']:
-                            print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, está en los días seleccionados de {aimharder_user}. Haciendo reserva...")
-                            driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
-                            if driver_conexion:
-                                tomorrow = today + timedelta(days=1)
-                                nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-                                resultado= book_class(driver_conexion,clase_manana,nextClase)
-                                print("Resultado:", resultado)
-                                gestionar_resultado_email(resultado, email_to, email_to_dev)
-                                driver_conexion.quit()
-                            else:
-                                print(f"Error en login de {aimharder_user}")
-                        else:
-                            print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user}. No se hace reserva.")
-                            continue
-                        
-                    ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
-                    elif periodicidad == 'weekly':
-                        print(f" {aimharder_user} tiene weekly y hoy es {today}")
-                        if(today.weekday() == 6 ): # si es domingo
-                        #if True:
-                            print(f"{fechalog} - ⏭️ Hoy es {today.weekday()}")
-                            #print(reservas)
-                            driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
+                        print(f" ⏭️ {aimharder_user} tiene daily")
 
-                            for i in range(len(reservas)):
-                                proxima=dias.get(reservas[i]['dia'])  #traduce el dia de la semana de la reserva en un numero del 1 al 7
-                                #print("P",proxima)
-                                tomorrow = today + timedelta(days=proxima) # Proxima reserva será today(domingo (dia 6)) + i
-                                nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-                                print(f"{fechalog} - ⏭️ Reservando: {nextClase} - {reservas[i]}")
-                                if driver_conexion and reservas[i]['activo']:
-                                    resultado=book_class(driver_conexion,reservas[i],nextClase)
-                                    print("Resultado:", resultado)
-                                    gestionar_resultado_email(resultado, email_to, email_to_dev)
-                                else:
-                                    print(f"Error en login de {aimharder_user}")
-                            driver_conexion.quit()
-                        else:
+                        tomorrow_name = tomorrow_week_map[today.weekday()]
+
+                        clase_manana = next(
+                            (item for item in reservas if item['dia'] == tomorrow_name),
+                            None
+                        )
+
+                        if not clase_manana:
+                            print(f"{fechalog} - No hay configuración para mañana")
+                            continue
+
+                        if not clase_manana['activo']:
+                            print(f"{fechalog} - Día no activo → no se reserva")
+                            continue
+
+                        driver = login_to_aimharder(aimharder_user, aimharder_pass)
+
+                        if not driver:
+                            print(f"Error en login de {aimharder_user}")
+                            continue
+
+                        try:
+                            tomorrow = today + timedelta(days=1)
+                            nextClase = "wds" + tomorrow.strftime("%Y%m%d")
+
+                            resultado = book_class(driver, clase_manana, nextClase)
+                            print("Resultado:", resultado)
+
+                            gestionar_resultado_email(resultado, email_to, email_to_dev)
+
+                        finally:
+                            driver.quit()
+
+                    # ------------------ WEEKLY ------------------
+                    elif periodicidad == 'weekly':
+                        print(f"⏭️ {aimharder_user} tiene weekly")
+
+                        #if today.weekday() != 6:
+                        if False:
                             print("No es domingo")
+                            continue
+
+                        driver = login_to_aimharder(aimharder_user, aimharder_pass)
+
+                        if not driver:
+                            print(f"Error en login de {aimharder_user}")
+                            continue
+
+                        try:
+                            for reserva in reservas:
+
+                                if not reserva['activo']:
+                                    continue
+
+                                proxima = dias.get(reserva['dia'])
+                                tomorrow = today + timedelta(days=proxima)
+
+                                nextClase = "wds" + tomorrow.strftime("%Y%m%d")
+
+                                print(f"{fechalog} - Reservando: {nextClase} - {reserva}")
+
+                                resultado = book_class(driver, reserva, nextClase)
+                                print("Resultado:", resultado)
+
+                                gestionar_resultado_email(resultado, email_to, email_to_dev)
+
+                        finally:
+                            driver.quit()
 
     except Exception as e:
-        print(f"{fechalog} - Error GLOBAL al hacer reserva: {str(e)}")
-        send_email(subject="Error al hacer reserva ❌", body=f"Ocurrió un error GLOBAL al reservar:\n{str(e)}",to_email=email_to_dev)
+        print(f"{fechalog} - Error GLOBAL: {str(e)}")
+
+        try:
+            send_email(
+                subject="Error GLOBAL ❌",
+                body=str(e),
+                to_email=email_to_dev
+            )
+        except Exception:
+            print("Error enviando email de fallo global")

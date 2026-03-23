@@ -117,7 +117,7 @@ def book_class(driver, reserva_deseada, nextClase):
 
             try:
                 reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                # reserve_link.click()
+                #reserve_link.click()
             except NoSuchElementException:
                 return {"status": "error", "msg": "No se encontró botón reservar"}
 
@@ -414,14 +414,14 @@ if __name__ == "__main__":
                             resultado = book_class(driver, clase_manana, nextClase)
                             print("Resultado:", resultado)
 
-                            gestionar_resultado_email(resultado, email_to, email_to_dev)
+                            #gestionar_resultado_email(resultado, email_to, email_to_dev)
 
                         finally:
                             driver.quit()
 
                     # ------------------ WEEKLY ------------------
                     elif periodicidad == 'weekly':
-                        print(f"{aimharder_user} tiene weekly")
+                        print(f"⏭️ {aimharder_user} tiene weekly")
 
                         #if today.weekday() != 6:
                         if False:
@@ -450,7 +450,7 @@ if __name__ == "__main__":
                                 resultado = book_class(driver, reserva, nextClase)
                                 print("Resultado:", resultado)
 
-                                gestionar_resultado_email(resultado, email_to, email_to_dev)
+                                #gestionar_resultado_email(resultado, email_to, email_to_dev)
 
                         finally:
                             driver.quit()
