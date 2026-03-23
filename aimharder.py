@@ -366,16 +366,16 @@ if __name__ == "__main__":
                     ##PARA USUARIOS TIPO JAVI QUE HA DE EJECUTAR CADA DOMINGO
                     elif periodicidad == 'weekly':
                         print(f" {aimharder_user} tiene weekly y hoy es {today}")
-                        if(today.weekday() == 6 ):
+                        if(today.weekday() == 6 ): # si es domingo
                         #if True:
                             print(f"{fechalog} - ⏭️ Hoy es {today.weekday()}")
                             #print(reservas)
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
 
                             for i in range(len(reservas)):
-                                proxima=dias.get(reservas[i]['dia'])
+                                proxima=dias.get(reservas[i]['dia'])  #traduce el dia de la semana de la reserva en un numero del 1 al 7
                                 #print("P",proxima)
-                                tomorrow = today + timedelta(days=proxima)
+                                tomorrow = today + timedelta(days=proxima) # Proxima reserva será today(domingo (dia 6)) + i
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
                                 print(f"{fechalog} - ⏭️ Reservando: {nextClase} - {reservas[i]}")
                                 if driver_conexion and reservas[i]['activo']:
