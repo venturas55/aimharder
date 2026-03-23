@@ -110,10 +110,10 @@ def book_class(driver,reserva_deseada,nextClase):
             #print(f"{fechalog} - Clase: ", block.text)
             class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
             class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
-            print(f"DEBUG -> '{class_name}' | '{class_horario}'")
-            print(f"BUSCO -> '{reserva_deseada['clase']}' | '{reserva_deseada['hora']}'")   
+            print(f"\tDEBUG -> '{class_name}' | '{class_horario}'")
+            print(f"\tBUSCO -> '{reserva_deseada['clase']}' | '{reserva_deseada['hora']}'")   
             if reserva_deseada['clase'] in class_name and class_horario == reserva_deseada['hora']:
-                print("encontrado la clase deseada")
+                print("\t\tencontrado la clase deseada")
                 instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
                 box_name =  get_text_or_empty(block, By.CLASS_NAME, "rvBox")
                 #rvClaseDesc =  get_text_or_empty(block, By.CLASS_NAME, "rvClaseDesc")
@@ -128,7 +128,7 @@ def book_class(driver,reserva_deseada,nextClase):
                         #print(eucookielaw.get_attribute('outerHTML'))
                         driver.execute_script("document.getElementById('eucookielaw').style.display = 'none';")
                 except:
-                    print("sin cookie")
+                    print("\t\tsin cookie")
                 try:
                     reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
                     #print("button:",reserve_link.get_attribute("outerHTML"))
@@ -144,7 +144,7 @@ def book_class(driver,reserva_deseada,nextClase):
                         info_dialog = driver.find_element(By.ID, 'infoDialogBox')
                         if "La clase está llena" in info_dialog.text:
                             print(f"{fechalog} - ❌ Lista de espera llena para la clase {reserva_deseada['clase']} en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ❌")
-                            send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
+                            #send_email(   subject="Clase llena en AimHarder ❌",  body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue no pudo reservarse para mañana a las {reserva_deseada['hora']} por estar llena.", to_email=email_to  )
                             
                 except:
                         try:
@@ -153,11 +153,11 @@ def book_class(driver,reserva_deseada,nextClase):
                             lista_espera = WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]")))
                             #print("Lista Espera: ",lista_espera)
                             print(f"{fechalog} - ✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅")
-                            send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
+                            #send_email( subject="Reserva AimHarder realizada ✅", body=f"✅ Estas anotado en lista de espera par la clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} para mañana a las {reserva_deseada['hora']}. ✅",to_email=email_to)
                         except:
                             #print("El div con el aviso no ha aparecido en 3 segundos.")
                             print(f"{fechalog} - ✅ La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}. ✅")
-                            send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
+                            #send_email(subject="Reserva AimHarder realizada ✅",body=f"La clase {reserva_deseada['clase']}  en {box_name} con el {instructor_name} fue reservada correctamente para mañana a las {reserva_deseada['hora']}.",to_email=email_to)
                 break
                 
             else:
@@ -342,7 +342,7 @@ if __name__ == "__main__":
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
-                        print(f" {aimharder_user} tiene daily")
+                        print(f" ⏭️ ⏭️ {aimharder_user} tiene daily")
                         tomorrow_name = tomorrow_week_map[today.weekday()] #quitar el menos 1, es para pruebas despues de medianoche
                         
                         #print("Mañana",tomorrow_name)
@@ -374,11 +374,11 @@ if __name__ == "__main__":
 
                             for i in range(len(reservas)):
                                 if reservas[i]['activo']:
-                                    proxima=dias.get(reservas[i]['dia'])
+                                    proxima=dias.get(reservas[i]['dia']) 
                                     #print("P",proxima)
-                                    tomorrow = today + timedelta(days=proxima)
+                                    tomorrow = today + timedelta(days=proxima) # Proxima reserva será today(domingo (dia 6)) + i
                                     nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-                                    print(nextClase," - ",reservas[i])
+                                    print(f"{fechalog} - ⏭️ Reservando: {nextClase} - {reservas[i]}")
                                     if driver_conexion:
                                         book_class(driver_conexion,reservas[i],nextClase)
                                         #print(f"RESERVA {reservas[i]} REALIZADA {nextClase}")

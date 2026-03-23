@@ -342,7 +342,7 @@ if __name__ == "__main__":
 
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
-                        print(f" {aimharder_user} tiene daily")
+                        print(f" ⏭️ ⏭️ {aimharder_user} tiene daily")
                         tomorrow_name = tomorrow_week_map[today.weekday()] #quitar el menos 1, es para pruebas despues de medianoche
                         
                         #print("Mañana",tomorrow_name)
@@ -368,7 +368,7 @@ if __name__ == "__main__":
                         print(f" {aimharder_user} tiene weekly y hoy es {today}")
                         if(today.weekday() == 6 ):
                         #if True:
-                            print(f"{fechalog} - Hoy es {today.weekday()}")
+                            print(f"{fechalog} - ⏭️ Hoy es {today.weekday()}")
                             #print(reservas)
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
 
@@ -377,7 +377,7 @@ if __name__ == "__main__":
                                 #print("P",proxima)
                                 tomorrow = today + timedelta(days=proxima)
                                 nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-                                print(nextClase," - ",reservas[i])
+                                print(f"{fechalog} - ⏭️ Reservando: {nextClase} - {reservas[i]}")
                                 if driver_conexion and reservas[i]['activo']:
                                     book_class(driver_conexion,reservas[i],nextClase)
                                     #print(f"RESERVA {reservas[i]} REALIZADA {nextClase}")
