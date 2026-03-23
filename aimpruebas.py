@@ -332,7 +332,7 @@ if __name__ == "__main__":
                 # Obtener configuraciones de todos los usuarios que tengan una
                 cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
                 usuarios = cur.fetchall()
-                usuarios=usuarios # para hacer pruebas solo con el usuario tipo semanal.
+                print(usuarios)
                 for usuario in usuarios:
                     user_id = usuario['id']
                     aimharder_user = usuario['aimharder_user']
@@ -349,7 +349,7 @@ if __name__ == "__main__":
                     ##PARA USUARIOS TIPO XISME25 QUE HA DE EJECUTAR CADA DIA
                     if periodicidad == 'daily':
                         print(f" {aimharder_user} tiene daily")
-                        tomorrow_name = tomorrow_week_map[today.weekday()-1] #quitar el menos 1, es para pruebas despues de medianoche
+                        tomorrow_name = tomorrow_week_map[today.weekday()] #quitar el menos 1, es para pruebas despues de medianoche
                         
                         #print("Mañana",tomorrow_name)
                         clase_manana = next(item for item in reservas if item['dia'] == tomorrow_name)
