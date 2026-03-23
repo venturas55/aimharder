@@ -332,7 +332,7 @@ if __name__ == "__main__":
                 # Obtener configuraciones de todos los usuarios que tengan una
                 cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
                 usuarios = cur.fetchall()
-                print(usuarios)
+                #print(usuarios)
                 for usuario in usuarios:
                     user_id = usuario['id']
                     aimharder_user = usuario['aimharder_user']
@@ -374,8 +374,8 @@ if __name__ == "__main__":
                         print(f" {aimharder_user} tiene weekly")
                         #if(today.weekday() == 6 ):
                         if True:
-                            print(f"{fechalog} - Hoy es {today.weekday()}")
-                            #print(reservas)
+                            #print(f"{fechalog} - Hoy es {today.weekday()}")
+                            print("RESERVAS:",reservas)
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
 
                             for i in range(len(reservas)):
