@@ -358,7 +358,7 @@ if __name__ == "__main__":
                         #print(f"Los días seleccionados son: {dias_deseados}")
                         if tomorrow_name not in dias_deseados:
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, no está en los días seleccionados de {aimharder_user} {dias_deseados}. No se hace reserva.")
-                            break
+                            continue
                         else:
                             print(f"{fechalog} - ⏭️ Mañana es {clase_manana['dia']}, está en los días seleccionados de {aimharder_user} {dias_deseados}. Haciendo reserva...")
                             driver_conexion=login_to_aimharder(aimharder_user,aimharder_pass)
