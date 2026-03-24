@@ -413,8 +413,8 @@ if __name__ == "__main__":
                     elif periodicidad == 'weekly':
                         print(f"⏭️ {aimharder_user} tiene weekly")
 
-                        #if today.weekday() != 6:
-                        if False:
+                        if today.weekday() != 6:
+                        #if False:
                             print("No es domingo")
                             continue
 
