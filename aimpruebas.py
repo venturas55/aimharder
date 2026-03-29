@@ -86,9 +86,32 @@ def book_class(driver, reserva_deseada, nextClase):
         except NoSuchElementException:
             print(f"{fechalog} - No se encontró botón nextWeek")
 
-    anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
-    anchor.click()
+    try:
+        wait.until(EC.presence_of_element_located((By.ID, "weekDays")))
+    except TimeoutException:
+        return {"status": "error", "msg": "No cargó weekDays"}
+    
+    dias_disponibles = driver.find_elements(By.CSS_SELECTOR, "div#weekDays a")
+    print("Días disponibles:")
+    for d in dias_disponibles:
+        print(d.get_attribute("class"))
 
+
+    try:
+        anchor = wait.until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
+            )
+        )
+        anchor.click()
+
+    except TimeoutException:
+        clases = [d.get_attribute("class") for d in dias_disponibles]
+        return {
+            "status": "error",
+            "msg": f"No existe {nextClase}. Disponibles: {clases}"
+        }
+    
     wait.until(EC.staleness_of(anchor))
 
     try:
@@ -117,7 +140,7 @@ def book_class(driver, reserva_deseada, nextClase):
 
             try:
                 reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                #reserve_link.click()
+                reserve_link.click()
             except NoSuchElementException:
                 return {"status": "error", "msg": "No se encontró botón reservar"}
 
@@ -207,16 +230,6 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
             body=res["msg"],
             to_email=email_to_dev
         )
-
-#funcion que se ejecutará un domingo
-def book_week(driver,reservas_deseadas):
-    nextWeek = driver.find_element(By.ID, "nextWeek")
-    nextWeek.click()
-    for i in range(1,8):
-        tomorrow = today + timedelta(days=i)
-        nextClase = "wds"+tomorrow.strftime("%Y%m%d")
-        print(nextClase," - ",reservas_deseadas[i-1])
-        #book_class(driver,reservas_deseadas[i-1],nextClase)
 
 def login_to_aimharder(username, password):
 
@@ -383,7 +396,7 @@ if __name__ == "__main__":
                     #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                     # ------------------ DAILY ------------------
-                    if periodicidad == 'daily':
+                    if periodicidad == 'daily' and int(ahora.strftime("%H"))<20:
                         print(f" ⏭️ {aimharder_user} tiene daily")
 
                         tomorrow_name = tomorrow_week_map[today.weekday()]
@@ -420,11 +433,11 @@ if __name__ == "__main__":
                             driver.quit()
 
                     # ------------------ WEEKLY ------------------
-                    elif periodicidad == 'weekly':
+                    elif periodicidad == 'weekly' and int(ahora.strftime("%H"))>20:
                         print(f"⏭️ {aimharder_user} tiene weekly")
 
-                        #if today.weekday() != 6:
-                        if False:
+                        if today.weekday() != 6:
+                        #if False:
                             print("No es domingo")
                             continue
 

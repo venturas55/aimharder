@@ -86,9 +86,32 @@ def book_class(driver, reserva_deseada, nextClase):
         except NoSuchElementException:
             print(f"{fechalog} - No se encontró botón nextWeek")
 
-    anchor = driver.find_element(By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
-    anchor.click()
+    try:
+        wait.until(EC.presence_of_element_located((By.ID, "weekDays")))
+    except TimeoutException:
+        return {"status": "error", "msg": "No cargó weekDays"}
+    
+    dias_disponibles = driver.find_elements(By.CSS_SELECTOR, "div#weekDays a")
+    print("Días disponibles:")
+    for d in dias_disponibles:
+        print(d.get_attribute("class"))
 
+
+    try:
+        anchor = wait.until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
+            )
+        )
+        anchor.click()
+
+    except TimeoutException:
+        clases = [d.get_attribute("class") for d in dias_disponibles]
+        return {
+            "status": "error",
+            "msg": f"No existe {nextClase}. Disponibles: {clases}"
+        }
+    
     wait.until(EC.staleness_of(anchor))
 
     try:
