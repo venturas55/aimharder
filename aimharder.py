@@ -373,7 +373,7 @@ if __name__ == "__main__":
                     #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                     # ------------------ DAILY ------------------
-                    if periodicidad == 'daily':
+                    if periodicidad == 'daily' and int(ahora.strftime("%H"))<20:
                         print(f" ⏭️ {aimharder_user} tiene daily")
 
                         tomorrow_name = tomorrow_week_map[today.weekday()]
@@ -410,7 +410,7 @@ if __name__ == "__main__":
                             driver.quit()
 
                     # ------------------ WEEKLY ------------------
-                    elif periodicidad == 'weekly':
+                    elif periodicidad == 'weekly' and int(ahora.strftime("%H"))>20:
                         print(f"⏭️ {aimharder_user} tiene weekly")
 
                         if today.weekday() != 6:
