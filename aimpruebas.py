@@ -80,11 +80,6 @@ def get_text_or_empty(parent, by, value):
 def book_class(driver, reserva_deseada, nextClase):
     wait = WebDriverWait(driver, 15)
 
-    if today.weekday() == 6:
-        try:
-            driver.find_element(By.ID, "nextWeek").click()
-        except NoSuchElementException:
-            print(f"{fechalog} - No se encontró botón nextWeek")
 
     try:
         wait.until(EC.presence_of_element_located((By.ID, "weekDays")))
@@ -339,7 +334,13 @@ def login_to_aimharder(username, password):
             reservations_link.click()
             print(f"{fechalog} - Clicked reservations link")
             
-            # Wait for the class list to load       
+            # Wait for the class list to load     
+            if today.weekday() == 6:
+                try:
+                    driver.find_element(By.ID, "nextWeek").click()
+                except NoSuchElementException:
+                    print(f"{fechalog} - No se encontró botón nextWeek")
+        
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
             print(f"{fechalog} - Error during login process: {str(e)}")
