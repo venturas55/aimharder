@@ -337,9 +337,9 @@ def login_to_aimharder(username, password):
             # Wait for the class list to load     
             if today.weekday() == 6:
                 try:
-                    driver.find_element(By.ID, "nextWeek").click()
+                    driver.find_element(By.ID, "nextDay").click()
                 except NoSuchElementException:
-                    print(f"{fechalog} - No se encontró botón nextWeek")
+                    print(f"{fechalog} - No se encontró botón nextDay")
         
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
