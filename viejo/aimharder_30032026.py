@@ -16,7 +16,6 @@ import smtplib
 import tempfile
 import shutil, glob
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 load_dotenv()
 DB_HOST = os.getenv("DB_HOST")
@@ -72,39 +71,6 @@ dias = {
     'Viernes':5,
     'Sabado':6,
     'Domingo':7
-}
-
-EMAIL_CONFIG = {
-    "reservada": {
-        "subject": "Reserva confirmada ✅",
-        "title": "Reserva confirmada",
-        "color": "#28a745",
-        "to": "user"
-    },
-    "espera": {
-        "subject": "En lista de espera 🟡",
-        "title": "Lista de espera",
-        "color": "#ffc107",
-        "to": "user"
-    },
-    "llena": {
-        "subject": "Clase llena ❌",
-        "title": "Clase llena",
-        "color": "#dc3545",
-        "to": "user"
-    },
-    "no_encontrada": {
-        "subject": "Clase no encontrada ❌",
-        "title": "Clase no encontrada",
-        "color": "#6c757d",
-        "to": "dev"
-    },
-    "error": {
-        "subject": "Error en reserva ❌",
-        "title": "Error en la reserva",
-        "color": "#dc3545",
-        "to": "dev"
-    }
 }
 
 def get_text_or_empty(parent, by, value):
@@ -220,6 +186,44 @@ def book_class(driver, reserva_deseada, nextClase):
         "clase": reserva_deseada['clase'],
         "hora": reserva_deseada['hora']
     }
+
+def gestionar_resultado_email(res, email_to, email_to_dev):
+    status = res["status"]
+
+    if status == "reservada":
+        send_email(
+            subject="Reserva confirmada ✅",
+            body=f"Reserva realizada para {res['clase']} ({res['hora']}) en {res['box']} con {res['coach']}",
+            to_email=email_to
+        )
+
+    elif status == "espera":
+        send_email(
+            subject="En lista de espera 🟡",
+            body=f"Lista de espera para {res['clase']} ({res['hora']})",
+            to_email=email_to
+        )
+
+    elif status == "llena":
+        send_email(
+            subject="Clase llena ❌",
+            body=f"La clase {res['clase']} ({res['hora']}) está llena",
+            to_email=email_to
+        )
+
+    elif status == "no_encontrada":
+        send_email(
+            subject="Clase no encontrada ❌",
+            body=f"No se encontró {res['clase']} a las {res['hora']}",
+            to_email=email_to_dev
+        )
+
+    elif status == "error":
+        send_email(
+            subject="Error en reserva ❌",
+            body=res["msg"],
+            to_email=email_to_dev
+        )
 
 def login_to_aimharder(username, password):
 
@@ -348,75 +352,20 @@ def login_to_aimharder(username, password):
             driver.quit()
         return None
 
-def build_email_html(title, message, status_color):
-    return f"""
-    <html>
-      <body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
-        
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:auto; background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background:{status_color}; color:white; padding:15px; text-align:center;">
-              <h2 style="margin:0;">{title}</h2>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:20px; color:#333;">
-              <p style="font-size:16px; line-height:1.5;">{message}</p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background:#f0f0f0; padding:10px; text-align:center; font-size:12px; color:#777;">
-              Este es un mensaje automático · No responder
-            </td>
-          </tr>
-
-        </table>
-
-      </body>
-    </html>
-    """
-
-def gestionar_resultado_email(res, email_to, email_to_dev):
-    status = res["status"]
-
-    if status not in EMAIL_CONFIG:
-        return
-
-    config = EMAIL_CONFIG[status]
-
-    message = res.get("msg", "")
-
-    if status in ["reservada", "espera", "llena"]:
-        message = f"{res['clase']} ({res['hora']})"
-
-    body = build_email_html(config["title"], message, config["color"])
-
-    to = email_to if config["to"] == "user" else email_to_dev
-
-    send_email(config["subject"], body, to)
-
 def send_email(subject, body, to_email):
-    msg = MIMEMultipart("alternative")
+    from_email = email_account  
+    from_password = email_password        
+    smtp_server = email_smtp_server
+    smtp_port = email_smtp_port
 
+    msg = MIMEText(body)
     msg["Subject"] = subject
-    msg["From"] = email_account
+    msg["From"] = from_email
     msg["To"] = to_email
 
-    # Versión texto plano (fallback)
-    text_version = "Este correo requiere un cliente compatible con HTML"
-
-    msg.attach(MIMEText(body, "html", "utf-8"))
-    msg.attach(MIMEText(text_version, "plain", "utf-8"))
-
     try:
-        server = smtplib.SMTP_SSL(email_smtp_server, int(email_smtp_port))
-        server.login(email_account, email_password)
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        server.login(from_email, from_password)
         server.send_message(msg)
         server.quit()
         print(f"{fechalog} - Correo enviado")

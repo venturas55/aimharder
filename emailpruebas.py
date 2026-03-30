@@ -223,25 +223,6 @@ def book_class(driver, reserva_deseada, nextClase):
         "hora": reserva_deseada['hora']
     }
 
-def gestionar_resultado_email(res, email_to, email_to_dev):
-    status = res["status"]
-
-    if status not in EMAIL_CONFIG:
-        return
-
-    config = EMAIL_CONFIG[status]
-
-    message = res.get("msg", "")
-
-    if status in ["reservada", "espera", "llena"]:
-        message = f"{res['clase']} ({res['hora']})"
-
-    body = build_email_html(config["title"], message, config["color"])
-
-    to = email_to if config["to"] == "user" else email_to_dev
-
-    send_email(config["subject"], body, to)
-
 def login_to_aimharder(username, password):
 
     # Set up Chrome options
@@ -402,6 +383,25 @@ def build_email_html(title, message, status_color):
       </body>
     </html>
     """
+
+def gestionar_resultado_email(res, email_to, email_to_dev):
+    status = res["status"]
+
+    if status not in EMAIL_CONFIG:
+        return
+
+    config = EMAIL_CONFIG[status]
+
+    message = res.get("msg", "")
+
+    if status in ["reservada", "espera", "llena"]:
+        message = f"{res['clase']} ({res['hora']})"
+
+    body = build_email_html(config["title"], message, config["color"])
+
+    to = email_to if config["to"] == "user" else email_to_dev
+
+    send_email(config["subject"], body, to)
 
 def send_email(subject, body, to_email):
     msg = MIMEMultipart("alternative")

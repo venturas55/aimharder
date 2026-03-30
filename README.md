@@ -16,6 +16,8 @@ pip install -r requirements.txt
 
 pip install pymysql
 
+sudo apt install chromium-browser chromium-driver
+sudo apt install chromium
 
 
 ```
