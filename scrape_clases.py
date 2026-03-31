@@ -176,21 +176,20 @@ def scrape_current_classes(driver, gym, tmpdir):
         # Todas las filas de tiempo
         time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
 
-        # Espera hasta que haya al menos un bloque de clase visible
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "ahBloqueClase"))
-        )
+
 
         for row in time_rows:
             try:
                 # Verificar si existe el elemento antes de usarlo
+                WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "timeRowDesc")))
                 time_desc_elements = row.find_elements(By.CLASS_NAME, "timeRowDesc")
                 
                 if not time_desc_elements:
                     continue  # saltar filas inválidas
                 
                 hora_name = time_desc_elements[0].text.strip()
-
+                # Espera hasta que haya al menos un bloque de clase visible
+                WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "ahBloqueClase")))
                 # Todos los bloques de clase dentro de esa fila
                 bloques = row.find_elements(By.CLASS_NAME, "ahBloqueClase")
                 for block in bloques:
