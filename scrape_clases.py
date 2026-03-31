@@ -170,7 +170,7 @@ def scrape_current_classes(driver,gym,tmpdir):
         driver.get("https://"+gym+".aimharder.com/timetable") #necesita logarse
 
         # Esperar a que la página cargue completamente y los bloques estén disponibles
-        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "bloqueClase")))
+        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "timetable")))
 
         # Crear un set para almacenar las clases únicas
         clases_unicas = set()
