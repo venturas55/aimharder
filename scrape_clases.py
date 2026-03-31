@@ -175,7 +175,7 @@ def scrape_current_classes(driver, gym, tmpdir):
 
         # Contenedor principal
         timetable = driver.find_element(By.ID, "timetable")
-        print(timetable.get_attribute("innerHTML")[:1000])
+        #print(timetable.get_attribute("innerHTML")[:1000])
         # Todas las filas de tiempo
         time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
 
