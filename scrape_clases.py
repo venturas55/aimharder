@@ -200,8 +200,8 @@ def scrape_current_classes(driver, gym, tmpdir):
             except Exception as e:
                 print(f"Error al procesar un timeRow: {e}")
 
-        #print("DEBUG - Clases encontradas:", clases_unicas)
-        #print("DEBUG - Horas encontradas:", horas_unicas)
+        print("DEBUG - Clases encontradas:", clases_unicas)
+        print("DEBUG - Horas encontradas:", horas_unicas)
         return clases_unicas, horas_unicas
 
     except Exception as e:
