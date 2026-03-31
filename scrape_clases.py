@@ -178,17 +178,15 @@ def scrape_current_classes(driver,gym,tmpdir):
         horas_unicas = set()
 
         # Encontrar todos los bloques de la semana en curso
-        class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
+        my_timetable = driver.find_elements((By.ID , "timetable"))
 
-        # Recorrer los bloques y extraer las clases rvNombreCl
-        for block in class_blocks:
-            try:
-                class_name = block.find_element(By.CLASS_NAME, "pbcNombreCl").text.strip()
-                hora_name = block.find_element(By.CLASS_NAME, "timeRowDesc").text.strip()
-                clases_unicas.add(class_name)  # Añadir al set, asegurando que sean únicos
-                horas_unicas.add(hora_name)  # Añadir al set, asegurando que sean únicos
-            except Exception as e:
-                print(f"Error al procesar un bloque: {e}")
+        try:
+            class_name = my_timetable.find_element(By.CLASS_NAME, "pbcNombreCl").text.strip()
+            hora_name = my_timetable.find_element(By.CLASS_NAME, "timeRowDesc").text.strip()
+            clases_unicas.add(class_name)  # Añadir al set, asegurando que sean únicos
+            horas_unicas.add(hora_name)  # Añadir al set, asegurando que sean únicos
+        except Exception as e:
+            print(f"Error al procesar un bloque: {e}")
         # Cerrar el driver después de la tarea
         return clases_unicas,horas_unicas
     except Exception as e:
