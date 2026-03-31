@@ -185,12 +185,13 @@ def scrape_current_classes(driver, gym, tmpdir):
             try:
                 # Verificar si existe el elemento antes de usarlo
                 time_desc_elements = row.find_elements(By.CLASS_NAME, "timeRowDesc")
-                print(time_desc_elements.get_attribute("innerHTML")[:100])
+                #print(time_desc_elements.get_attribute("innerHTML")[:100])
                 
                 if not time_desc_elements:
                     continue  # saltar filas inválidas
                 
                 hora_name = time_desc_elements[0].text.strip()
+                print(hora_name)
                 # Espera hasta que haya al menos un bloque de clase visible
                 # Todos los bloques de clase dentro de esa fila
                 bloques = row.find_elements(By.CLASS_NAME, "ahBloqueClase")
