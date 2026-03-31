@@ -163,41 +163,45 @@ def login_to_aimharder(username, password):
         return None
 
 
-def scrape_current_classes(driver,gym,tmpdir):
-       
+def scrape_current_classes(driver, gym, tmpdir):
     try:
-        # Abrir la página web
-        #driver.get("https://"+gym+".aimharder.com/schedule")
-        driver.get("https://"+gym+".aimharder.com/timetable") #necesita logarse
+        driver.get(f"https://{gym}.aimharder.com/timetable")
+        # Espera a que cargue la tabla
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetable")))
 
-        # Esperar a que la página cargue completamente y los bloques estén disponibles
-        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.ID , "timetable")))
-
-        # Crear un set para almacenar las clases únicas
         clases_unicas = set()
         horas_unicas = set()
 
-        # Encontrar todos los bloques de la semana en curso
-        my_timetable = driver.find_elements(By.ID , "timetable")
+        # Contenedor principal
+        timetable = driver.find_element(By.ID, "timetable")
 
-        try:
-            class_name = my_timetable.find_elements(By.CLASS_NAME, "pbcNombreCl").text.strip()
-            hora_name = my_timetable.find_elements(By.CLASS_NAME, "timeRowDesc").text.strip()
-            clases_unicas.add(class_name)  # Añadir al set, asegurando que sean únicos
-            horas_unicas.add(hora_name)  # Añadir al set, asegurando que sean únicos
-        except Exception as e:
-            print(f"Error al procesar un bloque: {e}")
-        # Cerrar el driver después de la tarea
-        return clases_unicas,horas_unicas
+        # Todos los bloques de clase
+        bloques = timetable.find_elements(By.CLASS_NAME, "ahBloqueClase")
+
+        for block in bloques:
+            try:
+                class_name = block.find_element(By.CLASS_NAME, "pbcNombreCl").text.strip()
+                # Para la hora, buscamos el contenedor padre "timeRow" y su span "timeRowDesc"
+                time_row = block.find_element(By.XPATH, "./ancestor::div[contains(@class,'timeRow')]")
+                hora_name = time_row.find_element(By.CLASS_NAME, "timeRowDesc").text.strip()
+                
+                clases_unicas.add(class_name)
+                horas_unicas.add(hora_name)
+            except Exception as e:
+                print(f"Error al procesar un bloque: {e}")
+
+        return clases_unicas, horas_unicas
+
     except Exception as e:
         print("❌ ERROR COMPLETO:")
-        traceback.print_exc()   # 👈 ESTO es lo importante
-        return None             # 👈 para evitar el crash
+        import traceback
+        traceback.print_exc()
+        return None
     finally:
-        # Close the browser
         driver.quit()
         shutil.rmtree(tmpdir, ignore_errors=True)
 
+        
 def save_classes_to_db(datos):
     conn = get_db_connection()
     with conn.cursor() as cur:
