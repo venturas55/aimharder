@@ -245,7 +245,7 @@ def save_classes_to_db(datos):
             cur.execute("DELETE FROM current_hours WHERE user_id=%s", (user_id,))
 
         conn.commit()
-        print("SCRAPPING - Clases actualizadas para ",datos['usuario']," : \n", datos['clases'], " y horas " ,datos['horas'])
+        print(f"SCRAPPING - Clases actualizadas para {datos['usuario']}:\nClases: {datos['clases']}\nHoras: {datos['horas']}")
 
     conn.close() 
 
