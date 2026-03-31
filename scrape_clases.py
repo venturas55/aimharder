@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+import traceback
 import time
 from datetime import date,datetime, timedelta
 import subprocess
@@ -191,8 +192,9 @@ def scrape_current_classes(driver,gym,tmpdir):
         # Cerrar el driver después de la tarea
         return clases_unicas,horas_unicas
     except Exception as e:
-        print(f"Scrap FlaskApp - An error occurred: {str(e)}")
-        return None
+        print("❌ ERROR COMPLETO:")
+        traceback.print_exc()   # 👈 ESTO es lo importante
+        return None             # 👈 para evitar el crash
     finally:
         # Close the browser
         driver.quit()
