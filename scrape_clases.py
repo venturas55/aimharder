@@ -33,7 +33,7 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor  # Para obtener resultados como diccionarios
     )
 
-for old_profile in glob.glob("/tmp/aimharderFlask-profile-*"):
+for old_profile in glob.glob("/tmp/aimharder-profile-*"):
     try:
         shutil.rmtree(old_profile)
     except Exception:
@@ -191,7 +191,7 @@ def scrape_current_classes(driver,gym,tmpdir):
         # Cerrar el driver después de la tarea
         return clases_unicas,horas_unicas
     except Exception as e:
-        print("Scrap FlaskApp - An error occurred: {str(e)}")
+        print(f"Scrap FlaskApp - An error occurred: {str(e)}")
     finally:
         # Close the browser
         driver.quit()
@@ -259,8 +259,14 @@ def get_usuarios():
 if __name__ == "__main__":
     usuarios=get_usuarios()
     for usuario in usuarios:
-        print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']} {usuario['aimharder_user']} {usuario['aimharder_pass']}")
-        driver,tmpdir = login_to_aimharder({usuario['aimharder_user']}, {usuario['aimharder_pass']})
+        print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']} {usuario['aimharder_user']} ")
+        result = login_to_aimharder(usuario['aimharder_user'],usuario['aimharder_pass'])
+
+        if not result:
+            print(f"{fechalog} - Error login usuario {usuario['usuario']}")
+            continue
+
+        driver, tmpdir = result
         clases,horas = scrape_current_classes(driver,usuario['gym'],tmpdir)
         datos = {
             "id": usuario['id'],
