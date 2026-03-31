@@ -162,7 +162,6 @@ def login_to_aimharder(username, password):
             driver.quit()
         return None
 
-
 def scrape_current_classes(driver, gym, tmpdir):
     try:
         driver.get(f"https://{gym}.aimharder.com/timetable")
@@ -185,7 +184,14 @@ def scrape_current_classes(driver, gym, tmpdir):
 
         for row in time_rows:
             try:
-                hora_name = row.find_element(By.CLASS_NAME, "timeRowDesc").text.strip()
+                # Verificar si existe el elemento antes de usarlo
+                time_desc_elements = row.find_elements(By.CLASS_NAME, "timeRowDesc")
+                
+                if not time_desc_elements:
+                    continue  # saltar filas inválidas
+                
+                hora_name = time_desc_elements[0].text.strip()
+
                 # Todos los bloques de clase dentro de esa fila
                 bloques = row.find_elements(By.CLASS_NAME, "ahBloqueClase")
                 for block in bloques:
