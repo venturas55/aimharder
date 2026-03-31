@@ -170,7 +170,7 @@ def scrape_current_classes(driver,gym,tmpdir):
         driver.get("https://"+gym+".aimharder.com/timetable") #necesita logarse
 
         # Esperar a que la página cargue completamente y los bloques estén disponibles
-        WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "bloqueClase")))
+        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "bloqueClase")))
 
         # Crear un set para almacenar las clases únicas
         clases_unicas = set()
@@ -192,6 +192,7 @@ def scrape_current_classes(driver,gym,tmpdir):
         return clases_unicas,horas_unicas
     except Exception as e:
         print(f"Scrap FlaskApp - An error occurred: {str(e)}")
+        return None
     finally:
         # Close the browser
         driver.quit()
@@ -269,7 +270,14 @@ if __name__ == "__main__":
             continue
 
         driver, tmpdir = result
-        clases,horas = scrape_current_classes(driver,usuario['gym'],tmpdir)
+        result = scrape_current_classes(driver, usuario['gym'], tmpdir)
+
+        if not result:
+            print(f"{fechalog} - Error scraping usuario {usuario['usuario']}")
+            continue
+
+        clases, horas = result
+
         datos = {
             "id": usuario['id'],
             "gym": usuario['gym'],
