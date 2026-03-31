@@ -166,7 +166,6 @@ def login_to_aimharder(username, password):
 def scrape_current_classes(driver, gym, tmpdir):
     try:
         driver.get(f"https://{gym}.aimharder.com/timetable")
-        # Espera a que cargue la tabla
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetable")))
 
         clases_unicas = set()
@@ -175,21 +174,23 @@ def scrape_current_classes(driver, gym, tmpdir):
         # Contenedor principal
         timetable = driver.find_element(By.ID, "timetable")
 
-        # Todos los bloques de clase
-        bloques = timetable.find_elements(By.CLASS_NAME, "ahBloqueClase")
+        # Todas las filas de tiempo
+        time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
 
-        for block in bloques:
+        for row in time_rows:
             try:
-                class_name = block.find_element(By.CLASS_NAME, "pbcNombreCl").text.strip()
-                # Para la hora, buscamos el contenedor padre "timeRow" y su span "timeRowDesc"
-                time_row = block.find_element(By.XPATH, "./ancestor::div[contains(@class,'timeRow')]")
-                hora_name = time_row.find_element(By.CLASS_NAME, "timeRowDesc").text.strip()
-                
-                clases_unicas.add(class_name)
-                horas_unicas.add(hora_name)
+                hora_name = row.find_element(By.CLASS_NAME, "timeRowDesc").text.strip()
+                # Todos los bloques de clase dentro de esa fila
+                bloques = row.find_elements(By.CLASS_NAME, "ahBloqueClase")
+                for block in bloques:
+                    class_name = block.find_element(By.CLASS_NAME, "pbcNombreCl").text.strip()
+                    clases_unicas.add(class_name)
+                    horas_unicas.add(hora_name)
             except Exception as e:
-                print(f"Error al procesar un bloque: {e}")
+                print(f"Error al procesar un timeRow: {e}")
 
+        print("DEBUG - Clases encontradas:", clases_unicas)
+        print("DEBUG - Horas encontradas:", horas_unicas)
         return clases_unicas, horas_unicas
 
     except Exception as e:
@@ -200,8 +201,7 @@ def scrape_current_classes(driver, gym, tmpdir):
     finally:
         driver.quit()
         shutil.rmtree(tmpdir, ignore_errors=True)
-
-        
+           
 def save_classes_to_db(datos):
     conn = get_db_connection()
     with conn.cursor() as cur:
