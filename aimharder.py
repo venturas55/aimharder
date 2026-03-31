@@ -18,6 +18,9 @@ import shutil, glob
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
+import unicodedata
+
+
 load_dotenv()
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")  # Reemplaza con tu nombre de usuario de MySQL
@@ -107,6 +110,15 @@ EMAIL_CONFIG = {
     }
 }
 
+def normalize(text):
+    if not text:
+        return ""
+    text = text.strip().lower()
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
+    text = text.replace(" ", "")  # 👈 elimina espacios
+    return text
+
 def get_text_or_empty(parent, by, value):
     elements = parent.find_elements(by, value)
     return elements[0].text.strip() if elements else ""
@@ -155,7 +167,7 @@ def book_class(driver, reserva_deseada, nextClase):
         class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
         class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
 
-        if reserva_deseada['clase'] in class_name and class_horario == reserva_deseada['hora']:
+        if normalize(reserva_deseada['clase']) in normalize(class_name) and class_horario == reserva_deseada['hora']:
 
             instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
             box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
