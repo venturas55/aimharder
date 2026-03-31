@@ -165,13 +165,16 @@ def login_to_aimharder(username, password):
 def scrape_current_classes(driver, gym, tmpdir):
     try:
         driver.get(f"https://{gym}.aimharder.com/timetable")
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetableCon")))
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetable")))
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "timeRowDesc")))
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "ahBloqueClase")))
+
 
         clases_unicas = set()
         horas_unicas = set()
 
         # Contenedor principal
-        timetable = driver.find_element(By.ID, "timetableCon")
+        timetable = driver.find_element(By.ID, "timetable")
         print(timetable.get_attribute("innerHTML")[:1000])
         # Todas las filas de tiempo
         time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
@@ -181,7 +184,6 @@ def scrape_current_classes(driver, gym, tmpdir):
         for row in time_rows:
             try:
                 # Verificar si existe el elemento antes de usarlo
-                WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "timeRowDesc")))
                 time_desc_elements = row.find_elements(By.CLASS_NAME, "timeRowDesc")
                 print(time_desc_elements.get_attribute("innerHTML")[:100])
                 
@@ -190,7 +192,6 @@ def scrape_current_classes(driver, gym, tmpdir):
                 
                 hora_name = time_desc_elements[0].text.strip()
                 # Espera hasta que haya al menos un bloque de clase visible
-                WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "ahBloqueClase")))
                 # Todos los bloques de clase dentro de esa fila
                 bloques = row.find_elements(By.CLASS_NAME, "ahBloqueClase")
                 for block in bloques:
