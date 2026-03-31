@@ -168,7 +168,7 @@ def book_class(driver, reserva_deseada, nextClase):
         class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
 
         if normalize(reserva_deseada['clase']) in normalize(class_name) and class_horario == reserva_deseada['hora']:
-
+            print("Clase encontrada")
             instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
             box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
 
@@ -226,7 +226,8 @@ def book_class(driver, reserva_deseada, nextClase):
                     "box": box_name,
                     "coach": instructor_name
                 }
-
+        else:
+            print("Clase no encontrada")
     return {
         "status": "no_encontrada",
         "clase": reserva_deseada['clase'],
