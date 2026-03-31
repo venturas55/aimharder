@@ -107,7 +107,7 @@ def login_to_aimharder(username, password):
         # Wait for the login form to load
         try:
             wait.until(EC.presence_of_element_located((By.ID, "mail")))
-            print(f"{fechalog} - Login form found")
+            #print(f"{fechalog} - Login form found")
         except Exception as e:
             print(f"{fechalog} - Could not find login form: {str(e)}")
             driver.quit()
@@ -119,7 +119,7 @@ def login_to_aimharder(username, password):
             try:
                 cookie_remove_button = driver.find_element(By.CLASS_NAME, "removeCookie")
                 cookie_remove_button.click()
-                print(f"{fechalog} - Cookie removal button clicked")
+                #print(f"{fechalog} - Cookie removal button clicked")
                 time.sleep(1)
             except Exception as e:
                 print(f"{fechalog} - Could not find or click cookie removal button: {str(e)}")
@@ -146,7 +146,7 @@ def login_to_aimharder(username, password):
             # Click reservations
             timtable_link = driver.find_element(By.CLASS_NAME, "ahPicTimetable")
             timtable_link.click()
-            print(f"{fechalog} - Clicked timtable_link link")
+            #print(f"{fechalog} - Clicked timetable_link link")
             
 
         
@@ -183,6 +183,7 @@ def scrape_current_classes(driver, gym, tmpdir):
                 # Verificar si existe el elemento antes de usarlo
                 WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "timeRowDesc")))
                 time_desc_elements = row.find_elements(By.CLASS_NAME, "timeRowDesc")
+                print(time_desc_elements.get_attribute("innerHTML")[:100])
                 
                 if not time_desc_elements:
                     continue  # saltar filas inválidas
