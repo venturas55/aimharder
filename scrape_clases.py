@@ -173,9 +173,15 @@ def scrape_current_classes(driver, gym, tmpdir):
 
         # Contenedor principal
         timetable = driver.find_element(By.ID, "timetable")
-
+        timetable = driver.find_element(By.ID, "timetable")
+        print(timetable.get_attribute("innerHTML")[:1000])
         # Todas las filas de tiempo
         time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
+
+        # Espera hasta que haya al menos un bloque de clase visible
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "ahBloqueClase"))
+        )
 
         for row in time_rows:
             try:
@@ -201,7 +207,7 @@ def scrape_current_classes(driver, gym, tmpdir):
     finally:
         driver.quit()
         shutil.rmtree(tmpdir, ignore_errors=True)
-           
+
 def save_classes_to_db(datos):
     conn = get_db_connection()
     with conn.cursor() as cur:
