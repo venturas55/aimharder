@@ -64,7 +64,7 @@ def login_to_aimharder(username, password):
 
     # Crear directorio temporal único
     tmpdir = tempfile.mkdtemp(prefix="aimharder-profile-")
-    print("User data dir que vamos a usar:", tmpdir)
+    #print("User data dir que vamos a usar:", tmpdir)
     # Usar el directorio temporal para el perfil
     chrome_options.add_argument(f"--user-data-dir={tmpdir}")
 
@@ -165,14 +165,14 @@ def login_to_aimharder(username, password):
 def scrape_current_classes(driver, gym, tmpdir):
     try:
         driver.get(f"https://{gym}.aimharder.com/timetable")
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetable")))
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetableCon")))
 
         clases_unicas = set()
         horas_unicas = set()
 
         # Contenedor principal
-        timetable = driver.find_element(By.ID, "timetable")
-        #print(timetable.get_attribute("innerHTML")[:1000])
+        timetable = driver.find_element(By.ID, "timetableCon")
+        print(timetable.get_attribute("innerHTML")[:1000])
         # Todas las filas de tiempo
         time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
 
