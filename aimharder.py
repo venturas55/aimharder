@@ -372,7 +372,7 @@ def build_email_html(title, message, status_color):
           <!-- Footer -->
           <tr>
             <td style="background:#f0f0f0; padding:10px; text-align:center; font-size:12px; color:#777;">
-              Este es un mensaje automático · No responder
+              Aimharder Booking System by Guardian del Faro. Este es un mensaje automático · No responder
             </td>
           </tr>
 

@@ -48,3 +48,9 @@ CREATE TABLE bookings (
 );
 ALTER TABLE bookings
 ADD UNIQUE KEY unique_user_day (user_id, dia);
+
+ALTER TABLE current_classes 
+ADD CONSTRAINT unique_user_class UNIQUE (user_id, class_name);
+
+ALTER TABLE current_hours 
+ADD CONSTRAINT unique_user_hour UNIQUE (user_id, hora);
