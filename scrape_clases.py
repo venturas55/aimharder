@@ -172,8 +172,7 @@ def scrape_current_classes(driver, gym, tmpdir):
 
         # Contenedor principal
         timetable = driver.find_element(By.ID, "timetable")
-        timetable = driver.find_element(By.ID, "timetable")
-        print(timetable.get_attribute("innerHTML")[:1000])
+        #print(timetable.get_attribute("innerHTML")[:1000])
         # Todas las filas de tiempo
         time_rows = timetable.find_elements(By.CLASS_NAME, "timeRow")
 
@@ -201,8 +200,8 @@ def scrape_current_classes(driver, gym, tmpdir):
             except Exception as e:
                 print(f"Error al procesar un timeRow: {e}")
 
-        print("DEBUG - Clases encontradas:", clases_unicas)
-        print("DEBUG - Horas encontradas:", horas_unicas)
+        #print("DEBUG - Clases encontradas:", clases_unicas)
+        #print("DEBUG - Horas encontradas:", horas_unicas)
         return clases_unicas, horas_unicas
 
     except Exception as e:
@@ -225,7 +224,6 @@ def save_classes_to_db(datos):
         horas = list(set(datos['horas']))
 
         # --- CLASES ---
-
         # Insertar nuevas (ignora duplicados por UNIQUE)
         if clases:
             values = [(user_id, usuario, c) for c in clases]
@@ -236,16 +234,9 @@ def save_classes_to_db(datos):
 
             # Borrar las que ya no están
             placeholders = ','.join(['%s'] * len(clases))
-            cur.execute(
-                f"DELETE FROM current_classes WHERE user_id=%s AND class_name NOT IN ({placeholders})",
-                [user_id] + clases
-            )
-        else:
-            # Si no hay clases, borrar todas
-            cur.execute("DELETE FROM current_classes WHERE user_id=%s", (user_id,))
+            cur.execute(f"DELETE FROM current_classes WHERE user_id=%s AND class_name NOT IN ({placeholders})", [user_id] + clases )
 
         # --- HORAS ---
-
         if horas:
             values = [(user_id, usuario, h) for h in horas]
             cur.executemany(
@@ -258,9 +249,7 @@ def save_classes_to_db(datos):
                 f"DELETE FROM current_hours WHERE user_id=%s AND hora NOT IN ({placeholders})",
                 [user_id] + horas
             )
-        else:
-            cur.execute("DELETE FROM current_hours WHERE user_id=%s", (user_id,))
-
+  
         conn.commit()
         print(f"SCRAPPING - Clases actualizadas para {datos['usuario']}:\nClases: {datos['clases']}\nHoras: {datos['horas']}")
 
