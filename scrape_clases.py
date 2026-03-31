@@ -140,13 +140,13 @@ def login_to_aimharder(username, password):
             submit_button.click()
             
             # Wait for login to complete
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ahPicReservations")))
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ahPicTimetable")))
             print(f"{fechalog} - Login successful")
             
             # Click reservations
-            reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
-            reservations_link.click()
-            print(f"{fechalog} - Clicked reservations link")
+            timtable_link = driver.find_element(By.CLASS_NAME, "ahPicTimetable")
+            timtable_link.click()
+            print(f"{fechalog} - Clicked timtable_link link")
             
 
         
@@ -171,7 +171,7 @@ def scrape_current_classes(driver,gym,tmpdir):
         driver.get("https://"+gym+".aimharder.com/timetable") #necesita logarse
 
         # Esperar a que la página cargue completamente y los bloques estén disponibles
-        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "timetable")))
+        WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.ID , "timetable")))
 
         # Crear un set para almacenar las clases únicas
         clases_unicas = set()
