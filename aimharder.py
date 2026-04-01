@@ -19,6 +19,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import unicodedata
+import re
 
 
 load_dotenv()
@@ -116,7 +117,10 @@ def normalize(text):
     text = text.strip().lower()
     text = unicodedata.normalize('NFD', text)
     text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
-    text = text.replace(" ", "")  # 👈 elimina espacios
+
+    # 🔥 elimina TODO lo que no sea número, letra, : o -
+    text = re.sub(r'[^a-z0-9:-]', '', text)
+
     return text
 
 def get_text_or_empty(parent, by, value):
