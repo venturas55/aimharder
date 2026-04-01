@@ -408,10 +408,22 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
 
     config = EMAIL_CONFIG[status]
 
-    message = res.get("msg", "")
-
-    if status in ["reservada", "espera", "llena"]:
-        message = f"{res['clase']} ({res['hora']})"
+    clase = res.get("clase", "N/A")
+    hora = res.get("hora", "N/A")   
+    match status:
+        case "reservada":
+            message = f"La clase de {clase} a las {hora} se ha reservado con exito. A darle duro."
+        case "espera":
+            message = f"La clase de {clase} a las {hora} esta llena, pero se te ha apuntado en lista de espera"
+        case "llena":
+            message = f"La clase de {clase}a las {hora} esta llena y el cupo de lista de espera tambien. Lo siento."
+        case "no_encontrada":
+            message = f"La clase de {clase} a las {hora} no se ha encontrado entre las clases disponibles para ese dia"
+        case "error":
+            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}. El desarrollador estará trabajando en ello para solventarlo."
+        case _:
+            message = res.get("msg", "Estado desconocido")
+    
 
     body = build_email_html(config["title"], message, config["color"])
 
