@@ -166,7 +166,7 @@ def book_class(driver, reserva_deseada, nextClase):
     for block in class_blocks:
         class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
         class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
-        print(normalize(reserva_deseada['clase'])+ " compara con " + normalize(class_name))
+        print(normalize(reserva_deseada['clase'])+ " : " + normalize(class_name))
         print(normalize(reserva_deseada['clase'])+ " compara con " + normalize(class_horario))
         if normalize(reserva_deseada['clase']) in normalize(class_name) and class_horario == reserva_deseada['hora']:
             print("Clase encontrada")
