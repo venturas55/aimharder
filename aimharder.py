@@ -166,9 +166,9 @@ def book_class(driver, reserva_deseada, nextClase):
     for block in class_blocks:
         class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
         class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
-        print(normalize(reserva_deseada['clase'])+ " : " + normalize(class_name))
-        print(normalize(reserva_deseada['hora'])+ " = " + normalize(class_horario))
-        if normalize(reserva_deseada['clase']) == normalize(class_name) and class_horario == reserva_deseada['hora']:
+        print(f"DEBUG -> '{class_horario}' vs '{reserva_deseada['hora']}'")
+        print(f"LEN -> {len(class_horario)} vs {len(reserva_deseada['hora'])}")
+        if normalize(reserva_deseada['clase']) == normalize(class_name) and normalize(class_horario) == normalize(reserva_deseada['hora']):
             print("Clase encontrada")
             instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
             box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
