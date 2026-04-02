@@ -295,23 +295,10 @@ def login_to_trainning(username, password):
             login_button.click()
             print("parece que loguea")
             # 🔥 Esperar confirmación real de login
-            try:
-                wait.until(EC.presence_of_element_located((By.XPATH,"//span[contains(.,'Bienvenido')]")))
-                print("✅ Login correcto")
-
-            except TimeoutException:
-                print("❌ Login fallido")
-                html_body = driver.find_element(By.TAG_NAME, "body").get_attribute("innerHTML")
-                print(html_body[:2000])
-                driver.save_screenshot("/tmp/login_fail.png")
-                driver.quit()
-                return None
             # abrir dropdown
-            dropdown_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(.,'CHOOSE A CLUB')]")))
+            dropdown_btn = wait.until(EC.presence_of_element_located((By.XPATH,"//button[contains(.,'ELIGE UN CENTRO')]")))
             dropdown_btn.click()
             old_url = driver.current_url
-
-
             print(f"{fechalog} - Hace click en dropdown")
             # seleccionar club
             #club_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(., 'Nou Mestalla')]")))
