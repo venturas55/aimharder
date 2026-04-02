@@ -289,11 +289,25 @@ def login_to_trainning(username, password):
             password_field.clear()
             password_field.send_keys(password)
             password_field.send_keys(Keys.RETURN)
-            print(f"{fechalog} - Hace loguin")
-            # Click login button
-            #submit_button = driver.find_element(By.ID, "loginSubmit")
-            #submit_button.click()
+            #login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Login') or contains(., 'Entrar')]")))
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') " "or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'entrar')]")))
+            login_button.click()
+            # 🔥 Esperar confirmación real de login
+            try:
+                # Esperar a que desaparezca el login
+                wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "caja-login")))
+                wait.until(EC.presence_of_element_located((
+                    By.XPATH,
+                    "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'bienvenido')]"
+                )))
+                print("✅ Login correcto")
 
+            except TimeoutException:
+                print("❌ Login fallido")
+                print("HTML:", driver.page_source[:2000])
+                driver.save_screenshot("/tmp/login_fail.png")
+                driver.quit()
+                return None
             # abrir dropdown
             dropdown_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(.,'CHOOSE A CLUB')]")))
             dropdown_btn.click()
