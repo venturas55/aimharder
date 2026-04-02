@@ -302,16 +302,13 @@ def login_to_trainning(username, password):
             )))
 
             driver.execute_script("arguments[0].click();", dropdown_btn)
-            #dropdown_btn.click()
-            
             old_url = driver.current_url
             print(f"{fechalog} - Hace click en dropdown")
-            # seleccionar club
-            #club_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[contains(., 'Nou Mestalla')]")))
             club_option = wait.until(EC.element_to_be_clickable((By.XPATH,"//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'nou mestalla')]")))
+            driver.save_screenshot("/tmp/aimharder_dropdown.png")
             club_option.click()
             print(f"{fechalog} - Hace click en nou mestalla")
-
+            driver.save_screenshot("/tmp/aimharder_wait.png")
 
             wait.until(lambda d: d.current_url != old_url)
             print("URL actual:", driver.current_url)
@@ -331,8 +328,9 @@ def login_to_trainning(username, password):
         except Exception as e:
             print(f"{fechalog} - Error during login process: {repr(e)}")
             print("URL en el fallo:", driver.current_url)
-            print("HTML parcial:", driver.page_source[:2000])
-            driver.save_screenshot("/tmp/error_login.png")
+            section_body = driver.find_element(By.TAG_NAME, "section").get_attribute("innerHTML")
+            print(section_body[:9000]) # solo una parte
+            driver.save_screenshot("/tmp/aimharder_error_login2.png")
             driver.quit()
             return None
             
