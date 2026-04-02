@@ -301,7 +301,8 @@ def login_to_trainning(username, password):
 
             except TimeoutException:
                 print("❌ Login fallido")
-                print("HTML:", driver.page_source[:2000])
+                html_body = driver.find_element(By.TAG_NAME, "body").get_attribute("innerHTML")
+                print(html_body[:2000])
                 driver.save_screenshot("/tmp/login_fail.png")
                 driver.quit()
                 return None
