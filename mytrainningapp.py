@@ -302,27 +302,20 @@ def login_to_trainning(username, password):
             )))
 
             driver.execute_script("arguments[0].click();", dropdown_btn)
-            old_url = driver.current_url
             print(f"{fechalog} - Hace click en dropdown")
-            club_option = wait.until(EC.element_to_be_clickable((By.XPATH,"//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'nou mestalla')]")))
+            #club_option = wait.until(EC.element_to_be_clickable((By.XPATH,"//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'nou mestalla')]")))
+            club_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'activaclub nou mestalla')]")))
             driver.save_screenshot("/tmp/aimharder_dropdown.png")
-            club_option.click()
+            driver.execute_script("arguments[0].click();", club_option)
+
             print(f"{fechalog} - Hace click en nou mestalla")
             driver.save_screenshot("/tmp/aimharder_wait.png")
 
-            wait.until(lambda d: d.current_url != old_url)
-            print("URL actual:", driver.current_url)
-            section_body = driver.find_element(By.TAG_NAME, "section").get_attribute("innerHTML")
-            print(section_body[:9000]) # solo una parte
-            print("URL cambió a:", driver.current_url)
-
-
-
-
-            actividades = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(),'Actividades')]")))
+            actividades = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'actividades')]")))
             print(f"{fechalog} - Encuentra span[contains(text(),'Actividades')]")
             actividades.click()
             print(f"{fechalog} - Hace click en actividades")
+            driver.save_screenshot("/tmp/aimharder_actividades.png")
                   
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
