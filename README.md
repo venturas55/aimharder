@@ -105,3 +105,8 @@ Se añade al crontab. Así que se ejecutan dos crontabs.
   0 6 * * 1 /usr/bin/python3 /home/ubuntu/aimharder/scrape_clases.py >> /home/ubuntu/aimharder/log.txt 2>&1
 
 Ahora la app de Flask, solo leerá de la base de datos dichos datos.
+
+
+## para ver imagenes del VPS
+cd /tmp
+python3 -m http.server 8000

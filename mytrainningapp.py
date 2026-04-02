@@ -220,6 +220,9 @@ def login_to_trainning(username, password):
     # For VPS environment
     chrome_options.add_argument("--remote-debugging-port=9222")
     chrome_options.add_argument("--remote-debugging-address=0.0.0.0")
+    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+                     "Chrome/118.0.5993.117 Safari/537.36")
     
     # Set environment variables for VPS
     os.environ['WDM_LOG_LEVEL'] = '0'
