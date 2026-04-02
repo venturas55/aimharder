@@ -313,15 +313,23 @@ def login_to_trainning(username, password):
 
             print(f"{fechalog} - Hace click en nou mestalla")
             driver.save_screenshot("/tmp/aimharder_wait.png")
-            actividades = wait.until(EC.presence_of_element_located((By.XPATH,
-                "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'actividades')]"
-            )))
-            wait.until(EC.visibility_of(actividades))
-            driver.save_screenshot("/tmp/aimharder_menu.png")
-            print(f"{fechalog} - Encuentra span[contains(text(),'Actividades')]")
-            driver.execute_script("arguments[0].click();", actividades)
+
+
+                # --- Ir a Actividades usando el icono ---
+            try:
+                actividades_icon = wait.until(EC.element_to_be_clickable((
+                    By.XPATH,
+                    "//div[@class='menu-item-icon']/i[contains(@class, 'icon-menu-horarios')]/.."
+                )))
+                actividades_icon.click()
+                print(f"{fechalog} - Click en Actividades vía icono")
+                driver.save_screenshot("/tmp/actividades_icon.png")
+            except TimeoutException:
+                print(f"{fechalog} - ❌ No se encontró el icono de Actividades")
+                driver.save_screenshot("/tmp/actividades_icon_fail.png")
+                
             print(f"{fechalog} - Hace click en actividades")
-            driver.save_screenshot("/tmp/aimharder_actividades.png")
+            driver.save_screenshot("/tmp/aimharder_actividades_final.png")
                   
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
