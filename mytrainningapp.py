@@ -323,7 +323,10 @@ def login_to_trainning(username, password):
                   
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
-            print(f"{fechalog} - Error during login process: {str(e)}")
+            print(f"{fechalog} - Error during login process: {repr(e)}")
+            print("URL en el fallo:", driver.current_url)
+            print("HTML parcial:", driver.page_source[:2000])
+            driver.save_screenshot("/tmp/error_login.png")
             driver.quit()
             return None
             
