@@ -124,24 +124,54 @@ def login():
     return render_template("login.html")
 
 @app.route("/dashboard", methods=["GET", "POST"])
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     if 'id' not in session:
         return redirect(url_for('login'))
-    
-    dias, hora ,clase,aimharder_user,aimharder_pass = None,None,None, None, None  # Inicializar estas variables fuera del bloque if
-    
+
+    dias_semana = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo']
+
     class_times = get_current_hours_from()
-    current_clases= get_current_clases_from()
-    horario_lista= get_horarios()
-    config= get_config()
-    horario = { h['dia']: {'hora': h['hora'], 'clase': h['clase'],'activo':h['activo']} for h in horario_lista }
-    print("horario:",horario)
+    current_clases = get_current_clases_from()
+    horario_lista = get_horarios()
+    config = get_config()
 
-    #hora, dias = getData()
+    # 1️⃣ Crear horario desde BD
+    horario = { 
+        h['dia']: {
+            'hora': h['hora'], 
+            'clase': h['clase'],
+            'activo': h['activo']
+        } 
+        for h in horario_lista 
+    }
+
+    # 2️⃣ Completar días faltantes
+    for d in dias_semana:
+        if d not in horario:
+            horario[d] = {
+                'hora': '',
+                'clase': '',
+                'activo': False
+            }
+
+    print("horario:", horario)
+
     user_data = get_user_data_from_mysql()
-    #print("hora: " , hora, "   === dias: ",dias)
-    return render_template("index.html", config=config,horario=horario,class_times=class_times, dias=user_data['dias'], hora=user_data['hora'], clase=user_data['clase'],aimharder_pass=user_data['aimharder_pass'],aimharder_user=user_data['aimharder_user'],gym=user_data['gym'],current_clases=current_clases)   
 
+    return render_template(
+        "index.html",
+        config=config,
+        horario=horario,
+        class_times=class_times,
+        dias=user_data['dias'],
+        hora=user_data['hora'],
+        clase=user_data['clase'],
+        aimharder_pass=user_data['aimharder_pass'],
+        aimharder_user=user_data['aimharder_user'],
+        gym=user_data['gym'],
+        current_clases=current_clases
+    )
 @app.route("/guardar_basico", methods=["POST"])
 def guardar_basico():
         conn = get_db_connection()
