@@ -205,105 +205,137 @@ def book_class(driver, reserva_deseada, nextClase):
     }
 
 def login_to_trainning(username, password):
-    fechalog = time.strftime("%Y-%m-%d %H:%M:%S")
-    
-    # --- Configuración de Chrome ---
+
+    # Set up Chrome options
     chrome_options = webdriver.ChromeOptions()
-    # chrome_options.add_argument("--headless=new")  # comentar mientras debug
+    chrome_options.add_argument("--headless=new")  # New headless mode for Chrome
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-software-rasterizer")
-    chrome_options.add_argument("--verbose")
+    chrome_options.add_argument("--verbose")  # Chrome imprimirá muchos logs
+    
+    # For VPS environment
     chrome_options.add_argument("--remote-debugging-port=9222")
     chrome_options.add_argument("--remote-debugging-address=0.0.0.0")
-    chrome_options.add_argument(
-        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/118.0.5993.117 Safari/537.36"
-    )
-
-    # Variables entorno VPS
+    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+                     "Chrome/118.0.5993.117 Safari/537.36")
+    
+    # Set environment variables for VPS
     os.environ['WDM_LOG_LEVEL'] = '0'
     os.environ['WDM_LOCAL'] = '1'
 
-    driver = None
+
+    # Crear directorio temporal único
+    tmpdir = tempfile.mkdtemp(prefix="aimharder-profile-")
+    print("User data dir que vamos a usar:", tmpdir)
+    # Usar el directorio temporal para el perfil
+    chrome_options.add_argument(f"--user-data-dir={tmpdir}")
+
+    chrome_log_path = "/tmp/chrome_debug.log"
+    chrome_options.add_argument(f"--log-path={chrome_log_path}")
+    
+     # Initialize Chromium driver for VPS
     try:
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.set_window_size(1920, 1080)
-        wait = WebDriverWait(driver, 15)
-
-        # --- Abrir web ---
-        driver.get("https://www.trainingymapp.com/webtouch/")
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "caja-login")))
-        print(f"{fechalog} - Login form found")
-        driver.save_screenshot("/tmp/aimharderlogin_form.png")
-
-        # --- Rellenar usuario y password ---
-        username_field = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
-        username_field.clear()
-        username_field.send_keys(username)
-
-        password_field = driver.find_element(By.XPATH, "//input[@ng-model='pass']")
-        password_field.clear()
-        password_field.send_keys(password)
-        password_field.send_keys(Keys.RETURN)
-
-        # --- Click en "Entrar" ---
-        login_button = wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'entrar')]"
-        )))
-        driver.execute_script("arguments[0].click();", login_button)
-        print(f"{fechalog} - Click en Entrar realizado")
-        driver.save_screenshot("/tmp/aimharderafter_click_entrar.png")
-
-        # --- Esperar confirmación login ---
+        # Try to find the Chromium binary path
+        chromium_path = None
         try:
-            wait.until(EC.presence_of_element_located((
-                By.XPATH, "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'bienvenido')]"
-            )))
-            print(f"{fechalog} - ✅ Login correcto")
-            driver.save_screenshot("/tmp/aimharderlogin_success.png")
-        except TimeoutException:
-            print(f"{fechalog} - ❌ Login fallido")
-            driver.save_screenshot("/tmp/aimharderlogin_fail.png")
-            return None
+            # Try to find Chromium using which command
+            result = subprocess.run(['which', 'chromium-browser'], capture_output=True, text=True)
+            if result.returncode == 0:
+                chromium_path = result.stdout.strip()
+        except:
+            pass
 
-        # --- Abrir dropdown "ELIGE UN CENTRO" ---
-        dropdown_btn = wait.until(EC.element_to_be_clickable((
-            By.XPATH, "//button[@dropdown-toggle='dropdown-toggle']"
-        )))
-        driver.execute_script("arguments[0].click();", dropdown_btn)
-        print(f"{fechalog} - Click en dropdown")
-        driver.save_screenshot("/tmp/aimharderdropdown_open.png")
+        # If Chromium not found, try with default path
+        if not chromium_path:
+            chromium_path = '/usr/bin/chromium-browser'
 
-        # --- Seleccionar club ---
-        club_option = wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'activaclub nou mestalla')]"
-        )))
-        driver.execute_script("arguments[0].click();", club_option)
-        print(f"{fechalog} - Click en club 'Nou Mestalla'")
-        driver.save_screenshot("/tmp/aimharderclub_selected.png")
+        # Set the binary location
+        chrome_options.binary_location = chromium_path
 
-        # --- Ir a Actividades ---
-        actividades = wait.until(EC.element_to_be_clickable((
-            By.XPATH,
-            "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'actividades')]"
-        )))
-        actividades.click()
-        print(f"{fechalog} - Click en Actividades")
-        driver.save_screenshot("/tmp/aimharderactividades.png")
+        # Initialize the driver
+        driver = webdriver.Chrome(options=chrome_options)
+        wait = WebDriverWait(driver,15)
 
-        return driver  # ✅ Devuelve driver si todo fue bien
+        print(f"{fechalog} - Successfully initialized Chromium driver")
 
     except Exception as e:
-        print(f"{fechalog} - Error durante login/selección: {repr(e)}")
-        if driver:
-            driver.save_screenshot("/tmp/aimhardererror_global.png")
+        print(f"{fechalog} - Error initializing Chromium driver: {str(e)}")
+        sys.exit(1)
+    
+    try:
+        # Navigate to aimharder.com
+        driver.get("https://www.trainingymapp.com/webtouch/")
+        
+        # Wait for the login form to load
+        try:
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "caja-login")))
+            print(f"{fechalog} - Login form found")
+        except Exception as e:
+            print(f"{fechalog} - Could not find login form: {str(e)}")
+            driver.quit()
+            return
+            
+        # Enter username and password
+        try:
+            # Enter username
+            username_field = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
+            username_field.clear()
+            username_field.send_keys(username)
+            print("usuario")
+            # Enter password
+            password_field = driver.find_element(By.XPATH, "//input[@ng-model='pass']")
+            password_field.clear()
+            password_field.send_keys(password)
+            print("password")
+            #password_field.send_keys(Keys.RETURN)
+            # Click login (case insensitive)
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') "    "or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'entrar')]")))
+            login_button.click()
+            print("parece que loguea")
+            # 🔥 Esperar confirmación real de login
+            # abrir dropdown
+            dropdown_btn = wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//button[@dropdown-toggle='dropdown-toggle']"
+            )))
+
+            driver.execute_script("arguments[0].click();", dropdown_btn)
+            print(f"{fechalog} - Hace click en dropdown")
+            #club_option = wait.until(EC.element_to_be_clickable((By.XPATH,"//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'nou mestalla')]")))
+            club_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'activaclub nou mestalla')]")))
+            driver.save_screenshot("/tmp/aimharder_dropdown.png")
+            driver.execute_script("arguments[0].click();", club_option)
+
+            print(f"{fechalog} - Hace click en nou mestalla")
+            driver.save_screenshot("/tmp/aimharder_wait.png")
+            actividades = wait.until(EC.presence_of_element_located((By.XPATH,
+                "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'actividades')]"
+            )))
+            wait.until(EC.visibility_of(actividades))
+            driver.save_screenshot("/tmp/aimharder_menu.png")
+            print(f"{fechalog} - Encuentra span[contains(text(),'Actividades')]")
+            driver.execute_script("arguments[0].click();", actividades)
+            print(f"{fechalog} - Hace click en actividades")
+            driver.save_screenshot("/tmp/aimharder_actividades.png")
+                  
+            return driver  # ✅ devolver SOLO si todo fue bien   
+        except Exception as e:
+            print(f"{fechalog} - Error during login process: {repr(e)}")
+            print("URL en el fallo:", driver.current_url)
+            section_body = driver.find_element(By.TAG_NAME, "section").get_attribute("innerHTML")
+            print(section_body[:9000]) # solo una parte
+            driver.save_screenshot("/tmp/aimharder_error_login.png")
+            driver.quit()
+            return None
+            
+    except Exception as e:
+        print(f"{fechalog} - An error occurred: {str(e)}")
+        if 'driver' in locals():
             driver.quit()
         return None
 
