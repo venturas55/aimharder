@@ -288,7 +288,7 @@ def login_to_trainning(username, password):
             password_field = driver.find_element(By.XPATH, "//input[@ng-model='pass']")
             password_field.clear()
             password_field.send_keys(password)
-            password_field.send_keys(Keys.RETURN)
+            #password_field.send_keys(Keys.RETURN)
             login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Login') or contains(., 'Entrar')]")))
             login_button.click()
             # 🔥 Esperar confirmación real de login
