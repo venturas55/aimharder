@@ -296,8 +296,14 @@ def login_to_trainning(username, password):
             print("parece que loguea")
             # 🔥 Esperar confirmación real de login
             # abrir dropdown
-            dropdown_btn = wait.until(EC.presence_of_element_located((By.XPATH,"//button[contains(.,'ELIGE UN CENTRO')]")))
-            dropdown_btn.click()
+            dropdown_btn = wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//button[@dropdown-toggle='dropdown-toggle']"
+            )))
+
+            driver.execute_script("arguments[0].click();", dropdown_btn)
+            #dropdown_btn.click()
+            
             old_url = driver.current_url
             print(f"{fechalog} - Hace click en dropdown")
             # seleccionar club
