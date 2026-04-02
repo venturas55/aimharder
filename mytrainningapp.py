@@ -289,14 +289,12 @@ def login_to_trainning(username, password):
             password_field.clear()
             password_field.send_keys(password)
             #password_field.send_keys(Keys.RETURN)
-            login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Login') or contains(., 'Entrar')]")))
+            # Click login (case insensitive)
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') "    "or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'entrar')]")))
             login_button.click()
             # 🔥 Esperar confirmación real de login
             try:
-                # Esperar a que desaparezca el login
-                wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "caja-login")))
-                print("se va caja login")
-                wait.until(EC.presence_of_element_located((    By.XPATH,    "//span[contains(.,'Bienvenido')]")))
+                wait.until(EC.presence_of_element_located((By.XPATH,"//span[contains(.,'Bienvenido')]")))
                 print("✅ Login correcto")
 
             except TimeoutException:
