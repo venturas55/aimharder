@@ -430,9 +430,9 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
 
     to = email_to if config["to"] == "user" else email_to_dev
 
-    send_email(config["subject"], body, to)
+    send_email(config["subject"], body,message, to)
 
-def send_email(subject, body, to_email):
+def send_email(subject, body,message, to_email):
     msg = MIMEMultipart("alternative")
 
     msg["Subject"] = subject
@@ -440,10 +440,10 @@ def send_email(subject, body, to_email):
     msg["To"] = to_email
 
     # Versión texto plano (fallback)
-    text_version = "Este correo requiere un cliente compatible con HTML"
+    text_version = f"{subject}\n\n{message}\n\n---\nAimharder Booking System"
 
-    msg.attach(MIMEText(body, "html", "utf-8"))
     msg.attach(MIMEText(text_version, "plain", "utf-8"))
+    msg.attach(MIMEText(body, "html", "utf-8"))
 
     try:
         server = smtplib.SMTP_SSL(email_smtp_server, int(email_smtp_port))
