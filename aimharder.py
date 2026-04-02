@@ -368,33 +368,70 @@ def login_to_aimharder(username, password):
         return None
 
 def build_email_html(title, message, status_color):
-    return f"""
+   return f"""
     <html>
-      <body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
+      <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
         
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:auto; background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-          
-          <!-- Header -->
+        <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="background:{status_color}; color:white; padding:15px; text-align:center;">
-              <h2 style="margin:0;">{title}</h2>
+            <td align="center" style="padding:20px 10px;">
+              
+              <!-- Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+                
+                <!-- Header -->
+                <tr>
+                  <td style="background:{status_color}; padding:20px; text-align:center; color:white;">
+                    <h2 style="margin:0; font-weight:600;">{title}</h2>
+                  </td>
+                </tr>
+
+                <!-- Icon -->
+                <tr>
+                  <td align="center" style="padding:25px 20px 10px;">
+                    <div style="font-size:40px;">
+                      🎯
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Message -->
+                <tr>
+                  <td style="padding:10px 30px 20px; text-align:center; color:#333;">
+                    <p style="font-size:16px; line-height:1.6; margin:0;">
+                      {message}
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Button -->
+                <tr>
+                  <td align="center" style="padding:10px 20px 30px;">
+                    <a href="#" style="background:{status_color}; color:white; text-decoration:none; padding:14px 24px; border-radius:8px; font-size:15px; font-weight:600; display:inline-block;">
+                      Ver mis reservas
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- Divider -->
+                <tr>
+                  <td style="padding:0 30px;">
+                    <hr style="border:none; border-top:1px solid #eee;">
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding:15px 20px; text-align:center; font-size:12px; color:#888;">
+                    Aimharder Booking System<br>
+                    <span style="color:#bbb;">Mensaje automático · No responder</span>
+                  </td>
+                </tr>
+
+              </table>
+
             </td>
           </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:20px; color:#333;">
-              <p style="font-size:16px; line-height:1.5;">{message}</p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background:#f0f0f0; padding:10px; text-align:center; font-size:12px; color:#777;">
-              Aimharder Booking System by Guardian del Faro. Este es un mensaje automático · No responder
-            </td>
-          </tr>
-
         </table>
 
       </body>
