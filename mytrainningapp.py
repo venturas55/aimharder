@@ -309,7 +309,8 @@ def login_to_trainning(username, password):
 
             wait.until(lambda d: d.current_url != old_url)
             print("URL actual:", driver.current_url)
-            print("HTML:", driver.page_source[:9000])  # solo una parte
+            section_body = driver.find_element(By.TAG_NAME, "section").get_attribute("innerHTML")
+            print(section_body[:9000]) # solo una parte
             print("URL cambió a:", driver.current_url)
 
 
