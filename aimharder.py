@@ -170,9 +170,10 @@ def book_class(driver, reserva_deseada, nextClase):
     for block in class_blocks:
         class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
         class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
-        #print(f"DEBUG -> '{class_horario}' vs '{reserva_deseada['hora']}'")
+
+        print(f"DEBUG -> '{class_horario}' vs '{reserva_deseada['hora']}'")
         #print(f"LEN -> {len(class_horario)} vs {len(reserva_deseada['hora'])}")
-        if normalize(reserva_deseada['clase']) == normalize(class_name) and normalize(class_horario) == normalize(reserva_deseada['hora']):
+        if reserva_deseada['clase'] == normalize(class_name) and normalize(class_horario) == reserva_deseada['hora']:
             print("Clase encontrada")
             instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
             box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
@@ -486,6 +487,10 @@ if __name__ == "__main__":
                             (item for item in reservas if item['dia'] == tomorrow_name),
                             None
                         )
+                        print("clase_manana:",clase_manana)
+                        clase_manana['clase']=normalize(clase_manana['clase'])
+                        clase_manana['hora']=normalize(clase_manana['hora'])
+                        print("normalize clase_manana:",clase_manana)
 
                         if not clase_manana:
                             print(f"{fechalog} - No hay configuración para mañana")
