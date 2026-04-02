@@ -92,7 +92,7 @@ def get_text_or_empty(parent, by, value):
     return elements[0].text.strip() if elements else ""
 
 def book_class(driver, reserva_deseada, nextClase):
-    wait = WebDriverWait(driver, 15)
+    wait = WebDriverWait(driver, 20)
 
     try:
         wait.until(EC.presence_of_element_located((By.ID, "weekDays")))
@@ -173,7 +173,7 @@ def book_class(driver, reserva_deseada, nextClase):
 
             # LISTA DE ESPERA
             try:
-                WebDriverWait(driver, 5).until(
+                wait.until(
                     EC.visibility_of_element_located((
                         By.XPATH,
                         "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]"
@@ -310,10 +310,13 @@ def login_to_trainning(username, password):
 
             print(f"{fechalog} - Hace click en nou mestalla")
             driver.save_screenshot("/tmp/aimharder_wait.png")
-
-            actividades = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'actividades')]")))
+            actividades = wait.until(EC.presence_of_element_located((By.XPATH,
+                "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'actividades')]"
+            )))
+            wait.until(EC.visibility_of(actividades))
+            driver.save_screenshot("/tmp/aimharder_menu.png")
             print(f"{fechalog} - Encuentra span[contains(text(),'Actividades')]")
-            actividades.click()
+            driver.execute_script("arguments[0].click();", actividades)
             print(f"{fechalog} - Hace click en actividades")
             driver.save_screenshot("/tmp/aimharder_actividades.png")
                   
