@@ -280,18 +280,20 @@ def login_to_trainning(username, password):
         # Enter username and password
         try:
             # Enter username
-            username_field = wait.until(    EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
+            username_field = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
             username_field.clear()
             username_field.send_keys(username)
-            
+            print("usuario")
             # Enter password
             password_field = driver.find_element(By.XPATH, "//input[@ng-model='pass']")
             password_field.clear()
             password_field.send_keys(password)
+            print("password")
             #password_field.send_keys(Keys.RETURN)
             # Click login (case insensitive)
             login_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') "    "or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'entrar')]")))
             login_button.click()
+            print("parece que loguea")
             # 🔥 Esperar confirmación real de login
             try:
                 wait.until(EC.presence_of_element_located((By.XPATH,"//span[contains(.,'Bienvenido')]")))
