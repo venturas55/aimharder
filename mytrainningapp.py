@@ -239,7 +239,7 @@ def login_to_trainning(username, password):
         driver.get("https://www.trainingymapp.com/webtouch/")
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, "caja-login")))
         print(f"{fechalog} - Login form found")
-        driver.save_screenshot("/tmp/login_form.png")
+        driver.save_screenshot("/tmp/aimharderlogin_form.png")
 
         # --- Rellenar usuario y password ---
         username_field = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
@@ -258,7 +258,7 @@ def login_to_trainning(username, password):
         )))
         driver.execute_script("arguments[0].click();", login_button)
         print(f"{fechalog} - Click en Entrar realizado")
-        driver.save_screenshot("/tmp/after_click_entrar.png")
+        driver.save_screenshot("/tmp/aimharderafter_click_entrar.png")
 
         # --- Esperar confirmación login ---
         try:
@@ -266,10 +266,10 @@ def login_to_trainning(username, password):
                 By.XPATH, "//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'bienvenido')]"
             )))
             print(f"{fechalog} - ✅ Login correcto")
-            driver.save_screenshot("/tmp/login_success.png")
+            driver.save_screenshot("/tmp/aimharderlogin_success.png")
         except TimeoutException:
             print(f"{fechalog} - ❌ Login fallido")
-            driver.save_screenshot("/tmp/login_fail.png")
+            driver.save_screenshot("/tmp/aimharderlogin_fail.png")
             return None
 
         # --- Abrir dropdown "ELIGE UN CENTRO" ---
@@ -278,7 +278,7 @@ def login_to_trainning(username, password):
         )))
         driver.execute_script("arguments[0].click();", dropdown_btn)
         print(f"{fechalog} - Click en dropdown")
-        driver.save_screenshot("/tmp/dropdown_open.png")
+        driver.save_screenshot("/tmp/aimharderdropdown_open.png")
 
         # --- Seleccionar club ---
         club_option = wait.until(EC.element_to_be_clickable((
@@ -287,7 +287,7 @@ def login_to_trainning(username, password):
         )))
         driver.execute_script("arguments[0].click();", club_option)
         print(f"{fechalog} - Click en club 'Nou Mestalla'")
-        driver.save_screenshot("/tmp/club_selected.png")
+        driver.save_screenshot("/tmp/aimharderclub_selected.png")
 
         # --- Ir a Actividades ---
         actividades = wait.until(EC.element_to_be_clickable((
@@ -296,14 +296,14 @@ def login_to_trainning(username, password):
         )))
         actividades.click()
         print(f"{fechalog} - Click en Actividades")
-        driver.save_screenshot("/tmp/actividades.png")
+        driver.save_screenshot("/tmp/aimharderactividades.png")
 
         return driver  # ✅ Devuelve driver si todo fue bien
 
     except Exception as e:
         print(f"{fechalog} - Error durante login/selección: {repr(e)}")
         if driver:
-            driver.save_screenshot("/tmp/error_global.png")
+            driver.save_screenshot("/tmp/aimhardererror_global.png")
             driver.quit()
         return None
 
