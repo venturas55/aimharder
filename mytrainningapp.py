@@ -339,18 +339,14 @@ def login_to_trainning(username, password):
                 print("⚠️ No apareció el modal")
 
             # Esperar a que el modal desaparezca o simular click fuera
-            time.sleep(1)  # breve espera para asegurar que el modal está completamente cargado
+            time.sleep(3)  # breve espera para asegurar que el modal está completamente cargado
             driver.execute_script("document.body.click();")  # click fuera del modal
             print("✅ Click fuera del modal hecho")
 
             # Ahora hacemos click en el icono de actividades (robusto, usando el i.fa adecuado)
-            actividades_icon = wait.until(EC.element_to_be_clickable((
-                By.XPATH,
-                "//div[@class='menu-item-icon']/i[contains(@class,'icon-menu-horarios')]"
-            )))
-            driver.execute_script("arguments[0].click();", actividades_icon)
+            #actividades_icon.click()
             print("✅ Click en Actividades realizado")
-            driver.save_screenshot("/tmp/after_click_actividades.png")
+            driver.save_screenshot("/tmp/aimharder_actividades_final2.png")
                   
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
