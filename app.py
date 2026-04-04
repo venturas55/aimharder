@@ -60,6 +60,7 @@ def get_current_hours_from():
     # Ordenar horarios por hora de inicio
     def sort_key(hora_str):
         # Extrae la hora de inicio como número, ej: '08:00 - 09:00' -> 800
+        hora_str=hora_str.replace('/', '-')
         start = hora_str.split('-')[0].strip()
         h, m = map(int, start.split(':'))
         return h * 60 + m

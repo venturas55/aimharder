@@ -216,46 +216,47 @@ def scrape_current_classes(driver, gym, tmpdir):
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 def save_classes_to_db(datos):
-    conn = get_db_connection()
-    with conn.cursor() as cur:
+    if datos != None:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
 
-        user_id = datos['id']
-        usuario = datos['usuario']
+            user_id = datos['id']
+            usuario = datos['usuario']
 
-        clases = list(set(datos['clases']))  # evitar duplicados en input
-        horas = list(set(datos['horas']))
+            clases = list(set(datos['clases']))  # evitar duplicados en input
+            horas = list(set(datos['horas']))
 
-        # --- CLASES ---
-        # Insertar nuevas (ignora duplicados por UNIQUE)
-        if clases:
-            values = [(user_id, usuario, c) for c in clases]
-            cur.executemany(
-                "INSERT IGNORE INTO current_classes (user_id, usuario, class_name) VALUES (%s,%s,%s)",
-                values
-            )
+            # --- CLASES ---
+            # Insertar nuevas (ignora duplicados por UNIQUE)
+            if clases:
+                values = [(user_id, usuario, c) for c in clases]
+                cur.executemany(
+                    "INSERT IGNORE INTO current_classes (user_id, usuario, class_name) VALUES (%s,%s,%s)",
+                    values
+                )
 
-            # Borrar las que ya no están
-            placeholders = ','.join(['%s'] * len(clases))
-            cur.execute(f"DELETE FROM current_classes WHERE user_id=%s AND class_name NOT IN ({placeholders})", [user_id] + clases )
+                # Borrar las que ya no están
+                placeholders = ','.join(['%s'] * len(clases))
+                cur.execute(f"DELETE FROM current_classes WHERE user_id=%s AND class_name NOT IN ({placeholders})", [user_id] + clases )
 
-        # --- HORAS ---
-        if horas:
-            values = [(user_id, usuario, h) for h in horas]
-            cur.executemany(
-                "INSERT IGNORE INTO current_hours (user_id, usuario, hora) VALUES (%s,%s,%s)",
-                values
-            )
+            # --- HORAS ---
+            if horas:
+                values = [(user_id, usuario, h) for h in horas]
+                cur.executemany(
+                    "INSERT IGNORE INTO current_hours (user_id, usuario, hora) VALUES (%s,%s,%s)",
+                    values
+                )
 
-            placeholders = ','.join(['%s'] * len(horas))
-            cur.execute(
-                f"DELETE FROM current_hours WHERE user_id=%s AND hora NOT IN ({placeholders})",
-                [user_id] + horas
-            )
-  
-        conn.commit()
-        print(f"SCRAPPING - Clases actualizadas para {datos['usuario']}:\nClases: {datos['clases']}\nHoras: {datos['horas']}")
+                placeholders = ','.join(['%s'] * len(horas))
+                cur.execute(
+                    f"DELETE FROM current_hours WHERE user_id=%s AND hora NOT IN ({placeholders})",
+                    [user_id] + horas
+                )
+    
+            conn.commit()
+            print(f"SCRAPPING - Clases actualizadas para {datos['usuario']}:\nClases: {datos['clases']}\nHoras: {datos['horas']}")
 
-    conn.close() 
+        conn.close() 
 
 def get_usuarios():
     conn = get_db_connection()
@@ -265,19 +266,217 @@ def get_usuarios():
     conn.close()
     return result          
 
+def login_to_trainning(username, password):
+
+    # Set up Chrome options
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless=new")  # New headless mode for Chrome
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-software-rasterizer")
+    chrome_options.add_argument("--verbose")  # Chrome imprimirá muchos logs
+    
+    # For VPS environment
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.add_argument("--remote-debugging-address=0.0.0.0")
+    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+                     "Chrome/118.0.5993.117 Safari/537.36")
+    
+    # Set environment variables for VPS
+    os.environ['WDM_LOG_LEVEL'] = '0'
+    os.environ['WDM_LOCAL'] = '1'
+
+
+    # Crear directorio temporal único
+    tmpdir = tempfile.mkdtemp(prefix="aimharder-profile-")
+    print("User data dir que vamos a usar:", tmpdir)
+    # Usar el directorio temporal para el perfil
+    chrome_options.add_argument(f"--user-data-dir={tmpdir}")
+
+    chrome_log_path = "/tmp/chrome_debug.log"
+    chrome_options.add_argument(f"--log-path={chrome_log_path}")
+    
+     # Initialize Chromium driver for VPS
+    try:
+        # Try to find the Chromium binary path
+        chromium_path = None
+        try:
+            # Try to find Chromium using which command
+            result = subprocess.run(['which', 'chromium-browser'], capture_output=True, text=True)
+            if result.returncode == 0:
+                chromium_path = result.stdout.strip()
+        except:
+            pass
+
+        # If Chromium not found, try with default path
+        if not chromium_path:
+            chromium_path = '/usr/bin/chromium-browser'
+
+        # Set the binary location
+        chrome_options.binary_location = chromium_path
+
+        # Initialize the driver
+        driver = webdriver.Chrome(options=chrome_options)
+        wait = WebDriverWait(driver,15)
+
+        print(f"{fechalog} - Successfully initialized Chromium driver")
+
+    except Exception as e:
+        print(f"{fechalog} - Error initializing Chromium driver: {str(e)}")
+        sys.exit(1)
+    
+    try:
+        # Navigate to aimharder.com
+        driver.get("https://www.trainingymapp.com/webtouch/")
+        
+        # Wait for the login form to load
+        try:
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "caja-login")))
+            print(f"{fechalog} - Login form found")
+        except Exception as e:
+            print(f"{fechalog} - Could not find login form: {str(e)}")
+            driver.quit()
+            return
+            
+        # Enter username and password
+        try:
+            # Enter username
+            username_field = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
+            username_field.clear()
+            username_field.send_keys(username)
+            # Enter password
+            password_field = driver.find_element(By.XPATH, "//input[@ng-model='pass']")
+            password_field.clear()
+            password_field.send_keys(password)
+            #password_field.send_keys(Keys.RETURN)
+            # Click login (case insensitive)
+            login_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') "    "or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'entrar')]")))
+            login_button.click()
+            # 🔥 Esperar confirmación real de login
+            # abrir dropdown
+            dropdown_btn = wait.until(EC.element_to_be_clickable((
+                By.XPATH,
+                "//button[@dropdown-toggle='dropdown-toggle']"
+            )))
+
+            driver.execute_script("arguments[0].click();", dropdown_btn)
+            #club_option = wait.until(EC.element_to_be_clickable((By.XPATH,"//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'nou mestalla')]")))
+            club_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'activaclub nou mestalla')]")))
+            #driver.save_screenshot("/tmp/aimharder_dropdown.png")
+            driver.execute_script("arguments[0].click();", club_option)
+
+            print(f"{fechalog} - Hace click en nou mestalla")
+            #driver.save_screenshot("/tmp/aimharder_wait.png")
+
+
+                # --- Ir a Actividades usando el icono ---
+            try:
+                actividades_icon = wait.until(EC.element_to_be_clickable((
+                    By.XPATH,
+                    "//div[@class='menu-item-icon']/i[contains(@class, 'icon-menu-horarios')]/.."
+                )))
+                actividades_icon.click()
+                print(f"{fechalog} - Click en Actividades vía icono")
+                #driver.save_screenshot("/tmp/actividades_icon.png")
+            except TimeoutException:
+                print(f"{fechalog} - ❌ No se encontró el icono de Actividades")
+                #driver.save_screenshot("/tmp/actividades_icon_fail.png")
+                
+            print(f"{fechalog} - Hace click en actividades")
+            #driver.save_screenshot("/tmp/aimharder_actividades_final.png")
+            
+            # Esperar a que aparezca el modal de "Por favor espere"
+            #try:
+            #    wait.until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(),'Por favor espere un momento')]")))
+            #    print("⏳ Modal de espera activo")
+            #except TimeoutException:
+            #    print("⚠️ No apareció el modal")
+
+            # Esperar a que el modal desaparezca o simular click fuera
+            time.sleep(3)  # breve espera para asegurar que el modal está completamente cargado
+            driver.execute_script("document.body.click();")  # click fuera del modal
+            print("✅ Click fuera del modal hecho")
+
+            # Ahora hacemos click en el icono de actividades (robusto, usando el i.fa adecuado)
+            #actividades_icon.click()
+            time.sleep(3)  # breve espera para asegurar que el modal está completamente cargado
+            print("✅ Click en Actividades realizado")
+            driver.save_screenshot("/tmp/aimharder_actividades_final2.png")
+
+                  
+            return driver,tmpdir  # ✅ devolver SOLO si todo fue bien   
+        except Exception as e:
+            print(f"{fechalog} - Error during login process: {repr(e)}")
+            print("URL en el fallo:", driver.current_url)
+            section_body = driver.find_element(By.TAG_NAME, "section").get_attribute("innerHTML")
+            print(section_body[:9000]) # solo una parte
+            driver.save_screenshot("/tmp/aimharder_error_login.png")
+            driver.quit()
+            return None
+            
+    except Exception as e:
+        print(f"{fechalog} - An error occurred: {str(e)}")
+        if 'driver' in locals():
+            driver.quit()
+        return None
+
+def scrape_current_classes_trainning(driver, tmpdir):
+    try:
+        driver.get("https://www.trainingymapp.com/webtouch/actividades")
+        wait = WebDriverWait(driver,15)
+
+        clases = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.actividad > span")))
+        horas = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.horaPlazas > span")))
+
+        clases_unicas = set()
+        horas_unicas = set()
+
+        print(clases)
+        print(horas)
+        for item in clases:
+            try:
+                clases_unicas.add(item.text.strip())
+            except Exception as e:
+                print(f"Error al procesar una clase: {e}")
+        for item in horas:
+            try:
+                horas_unicas.add(item.text.strip())
+            except Exception as e:
+                print(f"Error al procesar una hora: {e}")
+        return clases_unicas, horas_unicas
+
+    except Exception as e:
+        print("❌ ERROR COMPLETO:")
+        import traceback
+        traceback.print_exc()
+        return None
+    finally:
+        driver.quit()
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
 
 if __name__ == "__main__":
     usuarios=get_usuarios()
     for usuario in usuarios:
         print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']} {usuario['aimharder_user']} ")
-        result = login_to_aimharder(usuario['aimharder_user'],usuario['aimharder_pass'])
+        if(usuario['tipo_app']=="aimharder"):
+            result = login_to_aimharder(usuario['aimharder_user'],usuario['aimharder_pass'])
+        else:
+            result = login_to_trainning(usuario['aimharder_user'],usuario['aimharder_pass'])
 
         if not result:
             print(f"{fechalog} - Error login usuario {usuario['usuario']}")
             continue
 
         driver, tmpdir = result
-        result = scrape_current_classes(driver, usuario['gym'], tmpdir)
+        if(usuario['tipo_app']=="aimharder"):
+            result = scrape_current_classes(driver, usuario['gym'], tmpdir)
+        else:
+            result = scrape_current_classes_trainning(driver, tmpdir)
 
         if not result:
             print(f"{fechalog} - Error scraping usuario {usuario['usuario']}")

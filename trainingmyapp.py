@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException, TimeoutException
 import time
 from datetime import date,datetime, timedelta
 import os
@@ -46,8 +46,6 @@ email_password = os.getenv("EMAIL_PASSWORD")
 email_to_dev = os.getenv("EMAIL_TO_DEV")
 email_smtp_server = os.getenv("EMAIL_SMTP_SERVER")
 email_smtp_port = os.getenv("EMAIL_SMTP_PORT")
-user_env = os.getenv("AIMHARDER_USERNAME")
-passw_env = os.getenv("AIMHARDER_PASSWORD")
 
 ahora = datetime.now()
 today = date.today()
@@ -84,6 +82,7 @@ def normalize(text):
 
     # 🔥 elimina TODO lo que no sea número, letra, : o -
     text = re.sub(r'[^a-z0-9:-]', '', text)
+    text=text.replace("-", "")
 
     return text
 
@@ -91,119 +90,108 @@ def get_text_or_empty(parent, by, value):
     elements = parent.find_elements(by, value)
     return elements[0].text.strip() if elements else ""
 
-def book_class(driver, reserva_deseada, nextClase):
+def book_class_trainning(driver, reserva_deseada, nextClase):
+    driver.get("https://www.trainingymapp.com/webtouch/actividades")
     wait = WebDriverWait(driver, 20)
-
     try:
-        wait.until(EC.presence_of_element_located((By.ID, "weekDays")))
+        actividades_icon = wait.until(EC.element_to_be_clickable((
+            By.XPATH,
+            "//div[@class='menu-item-icon']/i[contains(@class, 'icon-menu-horarios')]/.."
+        )))
+        actividades_icon.click()
+        actividades_icon.click()
+        print(f"{fechalog} - Click en Actividades vía icono en book_class_trainning")
     except TimeoutException:
-        return {"status": "error", "msg": "No cargó weekDays"}
-    
-    dias_disponibles = driver.find_elements(By.CSS_SELECTOR, "div#weekDays a")
-    print("Días disponibles:")
-    for d in dias_disponibles:
-        print(d.get_attribute("class"))
+        print(f"{fechalog} - ❌ No se encontró el icono de Actividades en book_class_trainning")
+    driver.save_screenshot("/tmp/aimharder_book_class.png")
+    # Esperar a que carguen las clases
+    bloques = wait.until(
+    EC.presence_of_all_elements_located(
+        (By.XPATH, '//*[@id="scrollCalendar"]//div[contains(@class,"item-dia")][3]//div[contains(@class,"item-dias")]')
+    )
+)
+    for bloque in bloques:
+        try:
+            # 🕒 HORARIO
+            horario = normalize(bloque.find_element(By.CSS_SELECTOR, ".etiquetaHora").text)
 
+            # 🏷️ NOMBRE CLASE
+            nombre = normalize(bloque.find_element(By.CSS_SELECTOR, ".actividad span").text)
+            print(nombre,horario,"   ==   >", reserva_deseada['clase'], reserva_deseada['hora'])
+            
+            # Filtrar lo que buscas
+            if reserva_deseada['clase'] in nombre and reserva_deseada['hora'] in horario:
 
-    try:
-        anchor = wait.until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
-            )
-        )
-        anchor.click()
+                print(f"\t\tEncontrada: {nombre} - {horario}")
 
-    except TimeoutException:
-        clases = [d.get_attribute("class") for d in dias_disponibles]
-        return {
-            "status": "error",
-            "msg": f"No existe {nextClase}. Disponibles: {clases}"
-        }
-    
-    wait.until(EC.staleness_of(anchor))
+                texto_bloque = bloque.text
 
-    try:
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
-    except TimeoutException:
-        return {"status": "error", "msg": "No cargaron las clases"}
+                # ❌ Clase completa
+                if "Completa" in texto_bloque:
+                    print("La clase está completa")
+                    break
 
-    time.sleep(3)
+                # ✅ Reservar
+                if "RESERVAR YA" in texto_bloque:
+                    print("Intentando reservar...")
+                    print("---- BLOQUE ----")
+                    print("Nombre:", nombre)
+                    print("Hora:", horario)
+                    print("Texto:", bloque.get_attribute("innerText"))
+                    print("----------------")
+                    # Esperar a que desaparezca el overlay
+                    wait.until(
+                        EC.invisibility_of_element_located((By.CLASS_NAME, "modal-backdrop"))
+                    )
+                    # 1. Click en el primer puesto libre
+                    driver.execute_script("arguments[0].click();", bloque)
+                    #primer_libre = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#puestos-horario .puesto_libre")))
+                    #primer_libre.click()
+                    libree = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@ng-click="changePlace(place)"]')))
+                    driver.execute_script("arguments[0].click();", libree)
+                    print("Seleccionado el primer puesto libre")
+                    driver.save_screenshot("/tmp/aimharder_puesto_libre.png")
 
-    class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
+                    # 2. Click en el botón reservar
+                    reservar = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@ng-click="actionSelectPlace()"]')))
+                    try:
+                        driver.execute_script("arguments[0].click();", reservar)
+                        driver.save_screenshot("/tmp/aimharder_reservar.png")
+                    except (StaleElementReferenceException, ElementClickInterceptedException):
+                        print("⚠️ Retry click reservar")
+                        time.sleep(1)
+                        driver.execute_script("arguments[0].click();", reservar)
+                        driver.save_screenshot("/tmp/aimharder_reservar.png")
+                    # Esperar a que aparezca el modal
+                    try:
+                        wait.until(
+                            EC.presence_of_element_located((By.XPATH, "//span[contains(text(),'Por favor, espere')]"))
+                        )
+                        print("⏳ Modal detectado")
 
-    for block in class_blocks:
-        class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
-        class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
+                        # Esperar un poco a que termine la acción
+                        time.sleep(2)
 
-        print(f"DEBUG -> '{class_horario}' vs '{reserva_deseada['hora']}'")
-        #print(f"LEN -> {len(class_horario)} vs {len(reserva_deseada['hora'])}")
-        if reserva_deseada['clase'] == normalize(class_name) and normalize(class_horario) == reserva_deseada['hora']:
-            print("Clase encontrada")
-            instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
-            box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
+                        # Click fuera del modal
+                        driver.execute_script("document.body.click();")
+                        print("✅ Click fuera del modal")
+                        driver.save_screenshot("/tmp/aimharder_reservar2.png")
 
-            # Ocultar cookies
-            try:
-                driver.execute_script("document.getElementById('eucookielaw').style.display = 'none';")
-            except Exception:
-                pass
+                        # Esperar a que desaparezca el modal
+                        wait.until(
+                            EC.invisibility_of_element_located((By.XPATH, "//span[contains(text(),'Por favor, espere')]"))
+                        )
+                        print("✅ Modal desaparecido")
 
-            try:
-                reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                reserve_link.click()
-            except NoSuchElementException:
-                return {"status": "error", "msg": "No se encontró botón reservar"}
+                        return "Reserva realizada"
 
-            # CLASE LLENA
-            try:
-                wait.until(EC.presence_of_element_located((By.ID, 'infoDialogBox')))
-                info_dialog = driver.find_element(By.ID, 'infoDialogBox')
+                    except TimeoutException:
+                        print("⚠️ No apareció el modal de espera")
+                        return "Posible fallo en reserva"
 
-                if "La clase está llena" in info_dialog.text:
-                    return {
-                        "status": "llena",
-                        "clase": reserva_deseada['clase'],
-                        "hora": reserva_deseada['hora'],
-                        "box": box_name,
-                        "coach": instructor_name
-                    }
-
-            except TimeoutException:
-                pass
-
-            # LISTA DE ESPERA
-            try:
-                wait.until(
-                    EC.visibility_of_element_located((
-                        By.XPATH,
-                        "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]"
-                    ))
-                )
-
-                return {
-                    "status": "espera",
-                    "clase": reserva_deseada['clase'],
-                    "hora": reserva_deseada['hora'],
-                    "box": box_name,
-                    "coach": instructor_name
-                }
-
-            except TimeoutException:
-                return {
-                    "status": "reservada",
-                    "clase": reserva_deseada['clase'],
-                    "hora": reserva_deseada['hora'],
-                    "box": box_name,
-                    "coach": instructor_name
-                }
-        else:
-            print("Clase no encontrada")
-    return {
-        "status": "no_encontrada",
-        "clase": reserva_deseada['clase'],
-        "hora": reserva_deseada['hora']
-    }
-
+        except Exception as e:
+            print("Error en bloque:", e)
+                    
 def login_to_trainning(username, password):
 
     # Set up Chrome options
@@ -286,17 +274,14 @@ def login_to_trainning(username, password):
             username_field = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@ng-model='user']")))
             username_field.clear()
             username_field.send_keys(username)
-            print("usuario")
             # Enter password
             password_field = driver.find_element(By.XPATH, "//input[@ng-model='pass']")
             password_field.clear()
             password_field.send_keys(password)
-            print("password")
             #password_field.send_keys(Keys.RETURN)
             # Click login (case insensitive)
             login_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') "    "or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'entrar')]")))
             login_button.click()
-            print("parece que loguea")
             # 🔥 Esperar confirmación real de login
             # abrir dropdown
             dropdown_btn = wait.until(EC.element_to_be_clickable((
@@ -305,14 +290,13 @@ def login_to_trainning(username, password):
             )))
 
             driver.execute_script("arguments[0].click();", dropdown_btn)
-            print(f"{fechalog} - Hace click en dropdown")
             #club_option = wait.until(EC.element_to_be_clickable((By.XPATH,"//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'nou mestalla')]")))
             club_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), 'activaclub nou mestalla')]")))
-            driver.save_screenshot("/tmp/aimharder_dropdown.png")
+            #driver.save_screenshot("/tmp/aimharder_dropdown.png")
             driver.execute_script("arguments[0].click();", club_option)
 
             print(f"{fechalog} - Hace click en nou mestalla")
-            driver.save_screenshot("/tmp/aimharder_wait.png")
+            #driver.save_screenshot("/tmp/aimharder_wait.png")
 
 
                 # --- Ir a Actividades usando el icono ---
@@ -323,20 +307,20 @@ def login_to_trainning(username, password):
                 )))
                 actividades_icon.click()
                 print(f"{fechalog} - Click en Actividades vía icono")
-                driver.save_screenshot("/tmp/actividades_icon.png")
+                #driver.save_screenshot("/tmp/actividades_icon.png")
             except TimeoutException:
                 print(f"{fechalog} - ❌ No se encontró el icono de Actividades")
-                driver.save_screenshot("/tmp/actividades_icon_fail.png")
+                #driver.save_screenshot("/tmp/actividades_icon_fail.png")
                 
             print(f"{fechalog} - Hace click en actividades")
-            driver.save_screenshot("/tmp/aimharder_actividades_final.png")
+            #driver.save_screenshot("/tmp/aimharder_actividades_final.png")
             
             # Esperar a que aparezca el modal de "Por favor espere"
-            try:
-                wait.until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(),'Por favor espere un momento')]")))
-                print("⏳ Modal de espera activo")
-            except TimeoutException:
-                print("⚠️ No apareció el modal")
+            #try:
+            #    wait.until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(),'Por favor espere un momento')]")))
+            #    print("⏳ Modal de espera activo")
+            #except TimeoutException:
+            #    print("⚠️ No apareció el modal")
 
             # Esperar a que el modal desaparezca o simular click fuera
             time.sleep(3)  # breve espera para asegurar que el modal está completamente cargado
@@ -345,8 +329,10 @@ def login_to_trainning(username, password):
 
             # Ahora hacemos click en el icono de actividades (robusto, usando el i.fa adecuado)
             #actividades_icon.click()
+            time.sleep(3)  # breve espera para asegurar que el modal está completamente cargado
             print("✅ Click en Actividades realizado")
             driver.save_screenshot("/tmp/aimharder_actividades_final2.png")
+
                   
             return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
@@ -369,33 +355,30 @@ if __name__ == "__main__":
     try:
         with conn:
             with conn.cursor() as cur:
-                # Obtener configuraciones de todos los usuarios que tengan una
-             
-                    user_id = 3
-                    aimharder_user = user_env
-                    aimharder_pass = passw_env
-                    periodicidad = 'daily'
-                    email_to = email_to_dev
+                cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
+                usuarios = cur.fetchall()
+                for usuario in usuarios:
+                    user_id = usuario['id']
+                    aimharder_user = usuario['aimharder_user']
+                    aimharder_pass = usuario['aimharder_pass']
+                    periodicidad = usuario['periodicidad']
+                    email_to = usuario['email']
 
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
 
-                    #print(reservas)
-                    #dias_deseados = [item['dia'] for item in reservas]
-                    #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
-
                     # ------------------ DAILY ------------------
-                    if periodicidad == 'daily' and int(ahora.strftime("%H"))<20:
+                    if periodicidad == 'daily':
                         print(f" ⏭️ {aimharder_user} tiene daily")
 
                         tomorrow_name = tomorrow_week_map[today.weekday()]
 
-                        clase_manana ={'id': 22, 'user_id': 3, 'dia': 'Sabado', 'hora': '09:00 - 09:30', 'clase': 'Quick core', 'activo': 1, 'created_at': datetime(2026, 3, 17, 12, 12, 49)}
+                        clase_manana ={'id': 22, 'user_id': 3, 'dia': 'Sabado', 'hora': '09:00 - 09:30', 'clase': ' QUICK HIIT', 'activo': 1, 'created_at': datetime(2026, 3, 17, 12, 12, 49)}
                         print("clase_manana:",clase_manana)
+
                         clase_manana['clase']=normalize(clase_manana['clase'])
                         clase_manana['hora']=normalize(clase_manana['hora'])
                         print("normalize clase_manana:",clase_manana)
-
                         if not clase_manana:
                             print(f"{fechalog} - No hay configuración para mañana")
 
@@ -411,7 +394,7 @@ if __name__ == "__main__":
                             tomorrow = today + timedelta(days=1)
                             nextClase = "wds" + tomorrow.strftime("%Y%m%d")
 
-                            resultado = book_class(driver, clase_manana, nextClase)
+                            resultado = book_class_trainning(driver, clase_manana, nextClase)
                             print("Resultado:", resultado)
 
                         finally:

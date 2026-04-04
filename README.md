@@ -80,7 +80,7 @@ WantedBy=multi-user.target
     se ha creado un aimharder2 para javi:
 
     sudo systemctl enable aimharder2
-    sudo systemctl start aimharder2
+    sudo systemctl restart aimharder2
     sudo systemctl stop aimharder2
 
 5. Check Gunicorn logs

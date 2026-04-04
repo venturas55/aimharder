@@ -499,7 +499,6 @@ if __name__ == "__main__":
                 # Obtener configuraciones de todos los usuarios que tengan una
                 cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
                 usuarios = cur.fetchall()
-                usuarios=usuarios # para hacer pruebas solo con el usuario tipo semanal.
                 for usuario in usuarios:
                     user_id = usuario['id']
                     aimharder_user = usuario['aimharder_user']
