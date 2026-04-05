@@ -38,10 +38,15 @@ python aimharderWIN.py  # For Windows
 It just modify aimharderVPS.py or aimharderWIN.py file to run at a specific time which should be run in     cron jobs in ubuntu VPS or Task Scheduler in Windows. Next line running:
         crontab -e
 
-And adding next line to run it everyday at 05:01 
+And adding next lines to run aimharder everyday at 05:05 and every sunday at 21:01. Run trainingmyapp every hour.
 
-    1 5 * * * /usr/bin/python3 /home/ubuntu/aimharder/aimharderVPS.py >> /home/ubuntu/aimharder/log.txt 2>&1
-    0 6 * * 1 /usr/bin/python3 /home/ubuntu/aimharder/scrape_clases.py >> /home/ubuntu/aimharder/log.txt 2>&1
+# m h  dom mon dow   command
+5 5 * * * /usr/bin/python3 /home/ubuntu/aimhardernew/aimharder.py >> /home/ubuntu/aimhardernew/log.txt 2>&1
+1 21 * * 0 /usr/bin/python3 /home/ubuntu/aimhardernew/aimharder.py >> /home/ubuntu/aimhardernew/log2.txt 2>&1
+1 * * * * /usr/bin/python3 /home/ubuntu/aimhardernew/trainingmyapp.py >> /home/ubuntu/aimhardernew/log3.txt 2>&1
+
+#Se ejecuta el scrap el primer minuto de cada lunes.
+1 0 * * 1 /usr/bin/python3 /home/ubuntu/aimhardernew/scrape_clases.py >> /home/ubuntu/aimharder/log10.txt 2>&1
 
 
 4. Run Flask App using systemd
