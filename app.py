@@ -232,6 +232,7 @@ def get_user_data_from_mysql():
         return None
 
 def update_config(aimharder_user,aimharder_pass,gym,periodicidad,tipo_app):
+    print("estoy en updatE_config:",tipo_app,periodicidad)
     try:
         # Conectar a la base de datos
         conn = get_db_connection()
@@ -241,7 +242,7 @@ def update_config(aimharder_user,aimharder_pass,gym,periodicidad,tipo_app):
         cur.execute(
             """
             INSERT INTO configs (user_id, aimharder_user, aimharder_pass,gym,periodicidad,tipo_app) 
-            VALUES (%s, %s,%s,%s,%s )
+            VALUES (%s, %s,%s,%s,%s,%s )
             ON DUPLICATE KEY UPDATE 
                 aimharder_user = VALUES(aimharder_user),
                 aimharder_pass = VALUES(aimharder_pass),

@@ -146,37 +146,17 @@
             <form method="post" action="{{ url_for('guardar_avanzado') }}">
               <div id="advancedFields" style="display:none;">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Tipo de App</label>
-                    <select class="form-select" name="tipo_app" required>
-                      <option disabled selected>Selecciona...</option>
-                      <option value="aimharder" {% if config['tipo_app']=="aimharder" %}selected{% endif %}>
-                        Aimharder
-                      </option>
-                      <option value="trainingmyapp" {% if config['tipo_app']=="trainingmyapp" %}selected{% endif %}>
-                        TrainingMyApp
-                      </option>
-         
-                    </select>
-                  </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Usuario en la APP</label>
-                  <input type="text" class="form-control" name="aimharder_user" value="{{ aimharder_user or '' }}"
-                    required>
+                  <label class="form-label">Tipo de App</label>
+                  <select class="form-select" name="tipo_app" required>
+                    <option disabled selected>Selecciona...</option>
+                    <option value="aimharder" {% if config['tipo_app']=="aimharder" %}selected{% endif %}>
+                      Aimharder
+                    </option>
+                    <option value="trainingmyapp" {% if config['tipo_app']=="trainingmyapp" %}selected{% endif %}>
+                      TrainingMyApp
+                    </option>
+                  </select>
                 </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Contraseña en la APP</label>
-                  <div class="input-group">
-                    <input type="password" class="form-control" id="aimharder_pass" name="aimharder_pass"
-                      value="{{ aimharder_pass or '' }}" required>
-
-                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
-                      <i class="bi bi-eye" id="togglePassIcon"></i>
-                    </button>
-                  </div>
-                </div>
-
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Gym (prefijo)</label>
@@ -200,6 +180,23 @@
                   </div>
                 </div>
 
+                <div class="mb-3">
+                  <label class="form-label">Usuario en la APP</label>
+                  <input type="text" class="form-control" name="aimharder_user" value="{{ aimharder_user or '' }}"
+                    required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Contraseña en la APP</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="aimharder_pass" name="aimharder_pass"
+                      value="{{ aimharder_pass or '' }}" required>
+
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
+                      <i class="bi bi-eye" id="togglePassIcon"></i>
+                    </button>
+                  </div>
+                </div>
                 <div class="d-grid mt-3">
                   <button class="btn btn-success">
                     <i class="bi bi-save"></i> Guardar configuración avanzada
