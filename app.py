@@ -216,7 +216,8 @@ def guardar_avanzado():
             aimharder_pass = request.form.get('aimharder_pass')
             gym = request.form.get('gym')
             periodicidad = request.form.get('periodicidad')
-            update_config(aimharder_user,aimharder_pass,gym,periodicidad)
+            tipo_app = request.form.get('tipo_app')
+            update_config(aimharder_user,aimharder_pass,gym,periodicidad,tipo_app)
             return redirect(url_for('dashboard'))  
 
 def get_user_data_from_mysql():
@@ -233,48 +234,7 @@ def get_user_data_from_mysql():
         conn.close()
         return None
 
-def update_target_file(selected_time, selected_days, clase,aimharder_user,aimharder_pass,gym,id):
-    #print("selected_time: ", selected_time)
-    path = os.path.join("scripts", f"aimharderVPS{id}.py")  # ejemplo guardando en carpeta 'scripts'
-    print(path)
-    try:
-        """  with open(path, "r", encoding="utf-8") as f:
-            code = f.read()
-
-        # Reemplaza la línea que define 'desired_class_time'
-        code = re.sub(
-            r"(desired_class_time\s*=\s*)['\"].*?['\"]",
-            rf"\1'{selected_time}'",
-            code
-        )
-
-        # Actualiza los días
-        days_str = "[" + ", ".join([f"'{day}'" for day in selected_days]) + "]"
-        code = re.sub(
-            r"(selected_days\s*=\s*)\[.*?\]",
-            rf"\1{days_str}",
-            code
-        )
-        # Reemplaza la línea que define 'clase'
-        code = re.sub(
-            r"(clase_deseada\s*=\s*)['\"].*?['\"]",
-            rf"\1'{clase}'",
-            code
-        )
-
-
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(code)
-        """
-       
-        return f"Reserva automática actualizada a: {selected_time} los días {', '.join(selected_days)}"
-    except Exception as e:
-        print("Error:", str(e))
-        traceback.print_exc()
-        return f"Error: {str(e)}"
-
-
-def update_config(aimharder_user,aimharder_pass,gym,periodicidad):
+def update_config(aimharder_user,aimharder_pass,gym,periodicidad,tipo_app):
     try:
         # Conectar a la base de datos
         conn = get_db_connection()
@@ -283,15 +243,16 @@ def update_config(aimharder_user,aimharder_pass,gym,periodicidad):
         # Usamos UPSERT: si el ID ya existe, se actualizan los campos; si no, se inserta
         cur.execute(
             """
-            INSERT INTO configs (id, aimharder_user, aimharder_pass,gym,periodicidad) 
+            INSERT INTO configs (user_id, aimharder_user, aimharder_pass,gym,periodicidad,tipo_app) 
             VALUES (%s, %s,%s,%s,%s )
             ON DUPLICATE KEY UPDATE 
                 aimharder_user = VALUES(aimharder_user),
                 aimharder_pass = VALUES(aimharder_pass),
                 gym = VALUES(gym),
-                periodicidad = VALUES(periodicidad)
+                periodicidad = VALUES(periodicidad),
+                tipo_app = VALUES(tipo_app)
             """,
-            (session["id"], aimharder_user,aimharder_pass,gym,periodicidad)
+            (session["id"], aimharder_user,aimharder_pass,gym,periodicidad,tipo_app)
         )
         conn.commit()  # Confirmar la transacción
         cur.close()
@@ -339,8 +300,8 @@ def register():
         )
         print("ID: ", cur.lastrowid)
         cur.execute(
-            "INSERT INTO configs (id, clase, hora, dias,aimharder_user,aimharder_pass) VALUES (%s,%s,%s, %s, %s, %s)",
-            (cur.lastrowid, "HYROX-Endurance", "[lunes,Miercoles,Viernes]", "08:00-09:00","dfgh@fg.com", "dfh@345")
+            "INSERT INTO configs (user_id, aimharder_user,aimharder_pass) VALUES (%s,%s,%s)",
+            (cur.lastrowid,"dfgh@fg.com", "dfh@345")
         )
         conn.commit()  # Confirmar la transacción
         cur.close()
