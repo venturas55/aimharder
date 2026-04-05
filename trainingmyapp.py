@@ -90,7 +90,7 @@ def get_text_or_empty(parent, by, value):
     elements = parent.find_elements(by, value)
     return elements[0].text.strip() if elements else ""
 
-def book_class_trainning(driver, reserva_deseada, nextClase):
+def book_class_trainning(driver, reserva_deseada):
     driver.get("https://www.trainingymapp.com/webtouch/actividades")
     wait = WebDriverWait(driver, 20)
     try:
@@ -355,34 +355,43 @@ if __name__ == "__main__":
     try:
         with conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad from usuarios u LEFT JOIN configs c ON u.id=c.id")
+                #cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad,c.tipo_app from usuarios u LEFT JOIN configs c ON u.id=c.id")
+                cur.execute("SELECT * from usuarios u LEFT JOIN configs c ON u.id=c.user_id")
                 usuarios = cur.fetchall()
                 for usuario in usuarios:
-                    user_id = usuario['id']
+                    user_id = usuario['user_id']
                     aimharder_user = usuario['aimharder_user']
                     aimharder_pass = usuario['aimharder_pass']
                     periodicidad = usuario['periodicidad']
                     email_to = usuario['email']
+                    tipo_app = usuario['tipo_app']
+                    print("TIPOAPP:",tipo_app)
 
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
 
-                    # ------------------ DAILY ------------------
-                    if periodicidad == 'daily':
-                        print(f" ⏭️ {aimharder_user} tiene daily")
+                    if tipo_app == 'trainingmyapp':
+                        print(f" ⏭️ {aimharder_user} tiene trainning my app")
 
                         tomorrow_name = tomorrow_week_map[today.weekday()]
 
-                        clase_manana ={'id': 22, 'user_id': 3, 'dia': 'Sabado', 'hora': '09:00 - 09:30', 'clase': ' QUICK HIIT', 'activo': 1, 'created_at': datetime(2026, 3, 17, 12, 12, 49)}
-                        print("clase_manana:",clase_manana)
+                        proxima_clase_a_reservar = next(
+                            (item for item in reservas if item['dia'] == tomorrow_name),
+                            None
+                        )
 
-                        clase_manana['clase']=normalize(clase_manana['clase'])
-                        clase_manana['hora']=normalize(clase_manana['hora'])
-                        print("normalize clase_manana:",clase_manana)
-                        if not clase_manana:
+                        #clase_manana ={'id': 22, 'user_id': 3, 'dia': 'Sabado', 'hora': '09:00 / 09:30', 'clase': ' QUICK HIIT', 'activo': 1, 'created_at': datetime(2026, 3, 17, 12, 12, 49)}
+                        print("clase_manana:",proxima_clase_a_reservar)
+
+                        proxima_clase_a_reservar['clase']=normalize(proxima_clase_a_reservar['clase'])
+                        proxima_clase_a_reservar['hora']=normalize(proxima_clase_a_reservar['hora'])
+                        print("normalize clase_manana:",proxima_clase_a_reservar)
+                        break
+                    
+                        if not proxima_clase_a_reservar:
                             print(f"{fechalog} - No hay configuración para mañana")
 
-                        if not clase_manana['activo']:
+                        if not proxima_clase_a_reservar['activo']:
                             print(f"{fechalog} - Día no activo → no se reserva")
 
                         driver = login_to_trainning(aimharder_user, aimharder_pass)
@@ -392,9 +401,7 @@ if __name__ == "__main__":
 
                         try:
                             tomorrow = today + timedelta(days=1)
-                            nextClase = "wds" + tomorrow.strftime("%Y%m%d")
-
-                            resultado = book_class_trainning(driver, clase_manana, nextClase)
+                            resultado = book_class_trainning(driver, proxima_clase_a_reservar)
                             print("Resultado:", resultado)
 
                         finally:

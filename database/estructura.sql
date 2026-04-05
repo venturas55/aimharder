@@ -9,15 +9,15 @@ CREATE TABLE usuarios (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'tabla de usuarios';
 
 CREATE TABLE configs (
-  id INT(11) NOT NULL PRIMARY KEY,
+  user_id INT(11) NOT NULL PRIMARY KEY,
   gym VARCHAR(100) DEFAULT NULL,
-  periodicidad ENUM('daily','weekly') NOT NULL,
+  periodicidad ENUM('daily','weekly','hourly') NOT NULL,
   clase VARCHAR(100) DEFAULT NULL,
   dias VARCHAR(250) DEFAULT NULL,
   hora VARCHAR(200) DEFAULT NULL,
   aimharder_user VARCHAR(200) DEFAULT NULL,
   aimharder_pass VARCHAR(200) DEFAULT NULL,
-  FOREIGN KEY (id) REFERENCES usuarios(id)
+  FOREIGN KEY (user_id) REFERENCES usuarios(id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'tabla de configs';
 
 CREATE TABLE current_classes (

@@ -45,7 +45,7 @@ def get_horarios():
 def get_config():
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute("SELECT * FROM configs WHERE id = %s", (session['id'],))
+        cur.execute("SELECT * FROM configs WHERE user_id = %s", (session['id'],))
         result = cur.fetchone()
     conn.close()
     return result          
@@ -124,7 +124,6 @@ def login():
 
     return render_template("login.html")
 
-@app.route("/dashboard", methods=["GET", "POST"])
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     if 'id' not in session:
@@ -223,7 +222,7 @@ def guardar_avanzado():
 def get_user_data_from_mysql():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM configs WHERE id = %s", (session['id'],))
+    cur.execute("SELECT * FROM configs WHERE user_id = %s", (session['id'],))
     user_data = cur.fetchone()
     if user_data:
         cur.close()
