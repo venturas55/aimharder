@@ -145,15 +145,28 @@
 
             <form method="post" action="{{ url_for('guardar_avanzado') }}">
               <div id="advancedFields" style="display:none;">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tipo de App</label>
+                    <select class="form-select" name="tipo_app" required>
+                      <option disabled selected>Selecciona...</option>
+                      <option value="aimharder" {% if config['tipo_app']=="aimharder" %}selected{% endif %}>
+                        Aimharder
+                      </option>
+                      <option value="trainingmyapp" {% if config['tipo_app']=="trainingmyapp" %}selected{% endif %}>
+                        TrainingMyApp
+                      </option>
+         
+                    </select>
+                  </div>
 
                 <div class="mb-3">
-                  <label class="form-label">Usuario AimHarder</label>
+                  <label class="form-label">Usuario en la APP</label>
                   <input type="text" class="form-control" name="aimharder_user" value="{{ aimharder_user or '' }}"
                     required>
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label">Contraseña</label>
+                  <label class="form-label">Contraseña en la APP</label>
                   <div class="input-group">
                     <input type="password" class="form-control" id="aimharder_pass" name="aimharder_pass"
                       value="{{ aimharder_pass or '' }}" required>
@@ -174,6 +187,9 @@
                     <label class="form-label">Periodicidad</label>
                     <select class="form-select" name="periodicidad" required>
                       <option disabled selected>Selecciona...</option>
+                      <option value="hourly" {% if config['periodicidad']=="hourly" %}selected{% endif %}>
+                        Horaria
+                      </option>
                       <option value="daily" {% if config['periodicidad']=="daily" %}selected{% endif %}>
                         Diaria
                       </option>
@@ -326,29 +342,29 @@
   }
 
   //Mostrar horarios clases:
-//Mostrar horarios clases:
-document.querySelectorAll(".day-check").forEach((checkbox) => {
+  //Mostrar horarios clases:
+  document.querySelectorAll(".day-check").forEach((checkbox) => {
 
-  function toggleRow() {
+    function toggleRow() {
 
-    const row = checkbox.closest("tr")
-    const selects = row.querySelectorAll("select")
+      const row = checkbox.closest("tr")
+      const selects = row.querySelectorAll("select")
 
-    if (checkbox.checked) {
-      row.classList.remove("row-disabled")
-      selects.forEach(select => select.disabled = false)
-    } else {
-      row.classList.add("row-disabled")
-      selects.forEach(select => select.disabled = true)
+      if (checkbox.checked) {
+        row.classList.remove("row-disabled")
+        selects.forEach(select => select.disabled = false)
+      } else {
+        row.classList.add("row-disabled")
+        selects.forEach(select => select.disabled = true)
+      }
     }
-  }
 
-  checkbox.addEventListener("change", toggleRow)
+    checkbox.addEventListener("change", toggleRow)
 
-  // ejecutar al cargar
-  toggleRow()
+    // ejecutar al cargar
+    toggleRow()
 
-})
+  })
 
 </script>
 <!-- Bootstrap Icons (para el icono del ojo) -->
