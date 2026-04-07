@@ -438,12 +438,11 @@ if __name__ == "__main__":
                                 print(ahora, "vs", fecha_evento, "=>", diferencia)
 
                                 if diferencia.total_seconds() > 48 * 3600:
-                                    print("Más de 48h")
+                                    print(f"{fechalog} - ❌ No se encontró clase a reservar en las proximas 48h")
                                 else:
-                                    print("Menos de 48h")
                                     item['clase']=normalize(item['clase'])
                                     item['hora']=normalize(item['hora'])
-                                    print((item))
+                                    print(f"{fechalog} - ✅ Clase de {item['clase']} a reservar en las proximas 48h [ a las {item['hora']}] ")
                                     driver = login_to_trainning(aimharder_user, aimharder_pass)
 
                                     if not driver:
