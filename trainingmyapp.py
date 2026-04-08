@@ -454,6 +454,8 @@ if __name__ == "__main__":
 
                                     finally:
                                         driver.quit()
+                            else:
+                                print(f"{fechalog} - 🤷‍♂️🤷 No hay clases a reservar")
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL: {str(e)}")
