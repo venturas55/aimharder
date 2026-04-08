@@ -3,6 +3,7 @@
 venv/
 tmp/
 logs/
+database/
 log.txt
 __pycache__
 aimharderVPS.log
