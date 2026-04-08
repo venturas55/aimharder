@@ -440,11 +440,11 @@ if __name__ == "__main__":
                                 print(ahora, "vs", fecha_evento, "=>", diferencia)
 
                                 if diferencia.total_seconds() > 48 * 3600:
-                                    print(f"{fechalog} - ❌ No se encontró clase a reservar en las proximas 48h")
+                                    print(f"{fechalog} - ❌ {user_id} - {aimharder_user} No tiene clase a reservar en las proximas 48h")
                                 else:
                                     item['clase']=normalize(item['clase'])
                                     item['hora']=normalize(item['hora'])
-                                    print(f"{fechalog} - ✅ Clase de {item['clase']} a reservar en las proximas 48h [ a las {item['hora']}] ")
+                                    print(f"{fechalog} - ✅ {user_id} - {aimharder_user} tiene una clase de {item['clase']} a reservar en las proximas 48h [ a las {item['hora']}] ")
                                     driver = login_to_trainning(aimharder_user, aimharder_pass)
 
                                     if not driver:
@@ -457,7 +457,7 @@ if __name__ == "__main__":
                                     finally:
                                         driver.quit()
                         if not alguna_reserva:
-                                print(f"{fechalog} - 🤷‍♂️🤷 No hay clases a reservar")
+                                print(f"{fechalog} - 🤷‍♂️🤷 {user_id} - {aimharder_user} No tiene clases a reservar")
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL: {str(e)}")
