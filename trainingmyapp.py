@@ -397,6 +397,7 @@ if __name__ == "__main__":
                 cur.execute("SELECT * from usuarios u LEFT JOIN configs c ON u.id=c.user_id")
                 usuarios = cur.fetchall()
                 for usuario in usuarios:
+                    alguna_reserva=False
                     user_id = usuario['user_id']
                     aimharder_user = usuario['aimharder_user']
                     aimharder_pass = usuario['aimharder_pass']
@@ -410,6 +411,7 @@ if __name__ == "__main__":
                     if tipo_app == 'trainingmyapp':
                         for item in reservas:
                             if item['activo'] == 1:
+                                alguna_reserva=True
                                 texto = item['dia'] + " " + item['hora']
                                 dia_str, horas = texto.split(" ", 1)
                                 hora_inicio = horas.split("/")[0].strip()
@@ -454,7 +456,7 @@ if __name__ == "__main__":
 
                                     finally:
                                         driver.quit()
-                            else:
+                        if not alguna_reserva:
                                 print(f"{fechalog} - 🤷‍♂️🤷 No hay clases a reservar")
 
     except Exception as e:
