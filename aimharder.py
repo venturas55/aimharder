@@ -306,7 +306,7 @@ def login_to_aimharder(username, password):
         
         # Wait for the login form to load
         try:
-            wait.until(EC.presence_of_element_located((By.ID, "mail")))
+            username_field = wait.until(EC.presence_of_element_located((By.NAME, "username")))
             print(f"{fechalog} - Login form found")
         except Exception as e:
             print(f"{fechalog} - Could not find login form: {str(e)}")
@@ -326,17 +326,20 @@ def login_to_aimharder(username, password):
                 # Continue anyway since this might not be critical
                 pass
             # Enter username
-            username_field = driver.find_element(By.ID, "mail")
+            #username_field = driver.find_element(By.ID, "mail")
+            #username_field = wait.until(EC.presence_of_element_located((By.NAME, "username"))) #Esta arriba para dar aviso de formulario encontrado
             username_field.clear()
             username_field.send_keys(username)
             
             # Enter password
-            password_field = driver.find_element(By.ID, "pw")
+            #password_field = driver.find_element(By.ID, "pw")
+            password_field = wait.until(EC.presence_of_element_located((By.NAME, "password")))
             password_field.clear()
             password_field.send_keys(password)
             
             # Click login button
-            submit_button = driver.find_element(By.ID, "loginSubmit")
+            #submit_button = driver.find_element(By.ID, "loginSubmit")
+            submit_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
             submit_button.click()
             
             # Wait for login to complete
