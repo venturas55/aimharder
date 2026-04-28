@@ -394,6 +394,16 @@ if __name__ == "__main__":
         with conn:
             with conn.cursor() as cur:
                 #cur.execute("SELECT u.id,u.usuario,u.full_name,u.email,c.clase,c.dias,c.hora,c.aimharder_user,c.aimharder_pass,c.gym,c.periodicidad,c.tipo_app from usuarios u LEFT JOIN configs c ON u.id=c.id")
+                
+                try:
+                    
+                    cur.execute("UPDATE bookings  SET reserva_realizada = 0, fecha_evento = fecha_evento + INTERVAL 7 DAY WHERE reserva_realizada = 1  AND fecha_evento < NOW()")
+                    conn.commit()
+                    #cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
+                except:
+                    pass
+
+
                 cur.execute("SELECT * from usuarios u LEFT JOIN configs c ON u.id=c.user_id")
                 usuarios = cur.fetchall()
                 for usuario in usuarios:
@@ -408,54 +418,87 @@ if __name__ == "__main__":
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
 
+                   
+
                     if tipo_app == 'trainingmyapp':
-                        for item in reservas:
-                            if item['activo'] == 1:
-                                alguna_reserva=True
-                                texto = item['dia'] + " " + item['hora']
-                                dia_str, horas = texto.split(" ", 1)
-                                hora_inicio = horas.split("/")[0].strip()
+                        driver = None  # 👈 importante
+                        try:
+                            for item in reservas:
+                                # 1. Inicializar fecha_evento si hace falta
+                                if not item['fecha_evento']:
+                                    # calcular como ya haces ahora
+                                    texto = item['dia'] + " " + item['hora']
+                                    dia_str, horas = texto.split(" ", 1)
+                                    hora_inicio = horas.split("/")[0].strip()
+                                    # 👇 adaptamos tu mapeo
+                                    dia_objetivo = dias[dia_str] - 1
+                                    dias_hasta = (dia_objetivo - ahora.weekday()) % 7
 
-                                # 👇 adaptamos tu mapeo
-                                dia_objetivo = dias[dia_str] - 1
+                                    hora_evento = datetime.strptime(hora_inicio, "%H:%M").time()
 
-                                dias_hasta = (dia_objetivo - ahora.weekday()) % 7
+                                    fecha_evento = ahora + timedelta(days=dias_hasta)
+                                    fecha_evento = fecha_evento.replace(
+                                        hour=hora_evento.hour,
+                                        minute=hora_evento.minute,
+                                        second=0,
+                                        microsecond=0
+                                    )
+                                    # Si es hoy pero ya pasó la hora → siguiente semana
+                                    if dias_hasta == 0 and fecha_evento < ahora:
+                                        fecha_evento += timedelta(days=7)
 
-                                hora_evento = datetime.strptime(hora_inicio, "%H:%M").time()
+                                    # 🔥 guardarlo en BD
+                                    cur.execute("""
+                                        UPDATE bookings 
+                                        SET fecha_evento = %s 
+                                        WHERE id = %s
+                                    """, (fecha_evento, item['id']))
 
-                                fecha_evento = ahora + timedelta(days=dias_hasta)
-                                fecha_evento = fecha_evento.replace(
-                                    hour=hora_evento.hour,
-                                    minute=hora_evento.minute,
-                                    second=0,
-                                    microsecond=0
-                                )
+                                    item['fecha_evento'] = fecha_evento
 
-                                # Si es hoy pero ya pasó la hora → siguiente semana
-                                if dias_hasta == 0 and fecha_evento < ahora:
-                                    fecha_evento += timedelta(days=7)
+                                # 2. Filtros
+                                if not item['activo'] or item['reserva_realizada']:
+                                    continue
 
+                                # 3. Usar fecha_evento REAL (BD)
+                                if not item['fecha_evento']:  #Por robustez
+                                    continue
+                                fecha_evento = item['fecha_evento']
                                 diferencia = fecha_evento - ahora
 
                                 print(ahora, "vs", fecha_evento, "=>", diferencia)
 
                                 if diferencia.total_seconds() > 48 * 3600:
                                     print(f"{fechalog} - ❌ {user_id} - {aimharder_user} NO tiene clase a reservar en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
-                                else:
-                                    item['clase']=normalize(item['clase'])
-                                    item['hora']=normalize(item['hora'])
-                                    print(f"{fechalog} - ✅ {user_id} - {aimharder_user} TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
+                                    continue
+
+                                alguna_reserva=True
+                                
+                                ## 🔥 4. LOGIN SOLO UNA VEZ
+                                if driver is None:
                                     driver = login_to_trainning(aimharder_user, aimharder_pass)
 
                                     if not driver:
                                         print(f"Error en login de {aimharder_user}")
+                                        break  # no tiene sentido seguir
 
-                                    try:
-                                        resultado = book_class_trainning(driver, item)
+                                # 5. Reservar
+                                item['clase']=normalize(item['clase'])
+                                item['hora']=normalize(item['hora'])
+                                print(f"{fechalog} - ✅ {user_id} - {aimharder_user} TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
+
+                                try:
+                                    resultado = book_class_trainning(driver, item)
+                                    if resultado=="Reserva realizada":
                                         print("Resultado:", resultado)
-
-                                    finally:
-                                        driver.quit()
+                                        cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
+                                except Exception as e:
+                                        print("Error reservando:", e)
+                            conn.commit()
+                        finally:
+                            # 🔥 5. Cerrar driver UNA VEZ
+                            if driver:
+                                driver.quit()
                         if not alguna_reserva:
                                 print(f"{fechalog} - 🤷‍♂️🤷 {user_id} - {aimharder_user} No tiene clases a reservar")
 

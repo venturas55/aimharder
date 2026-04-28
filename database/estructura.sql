@@ -43,6 +43,8 @@ CREATE TABLE bookings (
   hora VARCHAR(255) NOT NULL,
   clase VARCHAR(100) NOT NULL,
   activo BOOLEAN NOT NULL DEFAULT TRUE,
+  reserva_realizada BOOLEAN NOT NULL DEFAULT FALSE,
+  fecha_evento DATETIME,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES usuarios(id)
 );
