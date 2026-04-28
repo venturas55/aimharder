@@ -472,12 +472,11 @@ if __name__ == "__main__":
                                 diferencia = fecha_evento - ahora
 
                                 #print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
+                                alguna_reserva=True
 
                                 if diferencia.total_seconds() > 48 * 3600:
                                     print(f"\t - ❌  NO tiene reservas en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
                                     continue
-
-                                alguna_reserva=True
                                 
                                 ## 🔥 4. LOGIN SOLO UNA VEZ
                                 if driver is None:
