@@ -226,7 +226,7 @@ def book_class_trainning(driver, reserva_deseada):
                     return "Reserva realizada"
                 
         except Exception as e:
-            print("Error en bloque:")
+            print("\t Error en bloque:")
             traceback.print_exc()
             return "Error al intentar reservar"
                     
@@ -418,7 +418,7 @@ if __name__ == "__main__":
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
 
-                   
+                    print(f"## {ahora} - USUARIO: {aimharder_user}")
 
                     if tipo_app == 'trainingmyapp':
                         driver = None  # 👈 importante
@@ -472,10 +472,10 @@ if __name__ == "__main__":
                                 fecha_evento = item['fecha_evento']
                                 diferencia = fecha_evento - ahora
 
-                                print(ahora, "vs", fecha_evento, "=>", diferencia)
+                                print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
 
                                 if diferencia.total_seconds() > 48 * 3600:
-                                    print(f"{fechalog} - ❌ {user_id} - {aimharder_user} NO tiene clase a reservar en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
+                                    print(f"\t{fechalog} - ❌ {user_id} - {aimharder_user} NO tiene clase a reservar en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
                                     continue
 
                                 alguna_reserva=True
@@ -485,28 +485,28 @@ if __name__ == "__main__":
                                     driver = login_to_trainning(aimharder_user, aimharder_pass)
 
                                     if not driver:
-                                        print(f"Error en login de {aimharder_user}")
+                                        print(f"\t Error en login de {aimharder_user}")
                                         break  # no tiene sentido seguir
 
                                 # 5. Reservar
                                 item['clase']=normalize(item['clase'])
                                 item['hora']=normalize(item['hora'])
-                                print(f"{fechalog} - ✅ {user_id} - {aimharder_user} TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
+                                print(f"\t {fechalog} - ✅ {user_id} - {aimharder_user} TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
 
                                 try:
                                     resultado = book_class_trainning(driver, item)
                                     if resultado=="Reserva realizada":
-                                        print("Resultado:", resultado)
+                                        print("\t Resultado:", resultado)
                                         cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
                                 except Exception as e:
-                                        print("Error reservando:", e)
+                                        print("\t Error reservando:", e)
                             conn.commit()
                         finally:
                             # 🔥 5. Cerrar driver UNA VEZ
                             if driver:
                                 driver.quit()
                         if not alguna_reserva:
-                                print(f"{fechalog} - 🤷‍♂️🤷 {user_id} - {aimharder_user} No tiene clases a reservar")
+                                print(f"\t {fechalog} - 🤷‍♂️🤷 {user_id} - {aimharder_user} No tiene clases a reservar")
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL: {str(e)}")
