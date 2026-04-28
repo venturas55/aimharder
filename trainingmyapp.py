@@ -424,6 +424,12 @@ if __name__ == "__main__":
                         driver = None  # 👈 importante
                         try:
                             for item in reservas:
+                                # Filtros base (ANTES de cualquier cálculo)
+                                if not item['activo']:
+                                    continue
+                                if not item['hora']:
+                                    continue
+
                                 # 1. Inicializar fecha_evento si hace falta
                                 if not item['fecha_evento']:
                                     # calcular como ya haces ahora
