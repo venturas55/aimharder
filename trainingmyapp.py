@@ -418,7 +418,7 @@ if __name__ == "__main__":
                     cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                     reservas = cur.fetchall()
 
-                    print(f"## {ahora} - USUARIO: {aimharder_user}")
+                    print(f"## {fechalog} - USUARIO: {aimharder_user}")
 
                     if tipo_app == 'trainingmyapp':
                         driver = None  # 👈 importante
@@ -472,10 +472,10 @@ if __name__ == "__main__":
                                 fecha_evento = item['fecha_evento']
                                 diferencia = fecha_evento - ahora
 
-                                print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
+                                #print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
 
                                 if diferencia.total_seconds() > 48 * 3600:
-                                    print(f"\t{fechalog} - ❌ {user_id} - {aimharder_user} NO tiene clase a reservar en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
+                                    print(f"\t{fechalog} - ❌ {aimharder_user} NO tiene reservas en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
                                     continue
 
                                 alguna_reserva=True
