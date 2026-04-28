@@ -100,9 +100,9 @@ def book_class_trainning(driver, reserva_deseada):
             "//div[@class='menu-item-icon']/i[contains(@class, 'icon-menu-horarios')]/.."
         )))
         actividades_icon.click()
-        print(f"\t - Click en Actividades vía icono en book_class_trainning")
+        print("\t - Click en Actividades vía icono en book_class_trainning")
     except TimeoutException:
-        print(f"\t - ❌ No se encontró el icono de Actividades en book_class_trainning")
+        print("\t - ❌ No se encontró el icono de Actividades en book_class_trainning")
     #driver.save_screenshot("/tmp/aimharder_book_class.png")
     # Esperar a que carguen las clases
     bloques = wait.until(
@@ -287,7 +287,7 @@ def login_to_trainning(username, password):
         driver = webdriver.Chrome(options=chrome_options)
         wait = WebDriverWait(driver,15)
 
-        print(f"\t - Successfully initialized Chromium driver")
+        print("\t - Successfully initialized Chromium driver")
 
     except Exception as e:
         print(f"\t - Error initializing Chromium driver: {str(e)}")
@@ -300,7 +300,7 @@ def login_to_trainning(username, password):
         # Wait for the login form to load
         try:
             wait.until(EC.presence_of_element_located((By.CLASS_NAME, "caja-login")))
-            print(f"\t - Login form found")
+            print("\t - Login form found")
         except Exception as e:
             print(f"\t - Could not find login form: {str(e)}")
             driver.quit()
@@ -333,7 +333,7 @@ def login_to_trainning(username, password):
             #driver.save_screenshot("/tmp/aimharder_dropdown.png")
             driver.execute_script("arguments[0].click();", club_option)
 
-            print(f"\t - Hace click en nou mestalla")
+            print("\t - Hace click en nou mestalla")
             #driver.save_screenshot("/tmp/aimharder_wait.png")
 
 
@@ -344,13 +344,13 @@ def login_to_trainning(username, password):
                     "//div[@class='menu-item-icon']/i[contains(@class, 'icon-menu-horarios')]/.."
                 )))
                 actividades_icon.click()
-                print(f"\t - Click en Actividades vía icono")
+                print("\t - Click en Actividades vía icono")
                 #driver.save_screenshot("/tmp/actividades_icon.png")
             except TimeoutException:
-                print(f"\t - ❌ No se encontró el icono de Actividades")
+                print("\t - ❌ No se encontró el icono de Actividades")
                 #driver.save_screenshot("/tmp/actividades_icon_fail.png")
                 
-            print(f"\t - Hace click en actividades")
+            print("\t - Hace click en actividades")
             #driver.save_screenshot("/tmp/aimharder_actividades_final.png")
             
             # Esperar a que aparezca el modal de "Por favor espere"
@@ -474,7 +474,7 @@ if __name__ == "__main__":
                                 #print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
 
                                 if diferencia.total_seconds() > 48 * 3600:
-                                    print(f"\t - ❌ {aimharder_user} NO tiene reservas en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
+                                    print(f"\t - ❌  NO tiene reservas en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
                                     continue
 
                                 alguna_reserva=True
@@ -484,13 +484,13 @@ if __name__ == "__main__":
                                     driver = login_to_trainning(aimharder_user, aimharder_pass)
 
                                     if not driver:
-                                        print(f"\t Error en login de {aimharder_user}")
+                                        print("\t Error en login")
                                         break  # no tiene sentido seguir
 
                                 # 5. Reservar
                                 item['clase']=normalize(item['clase'])
                                 item['hora']=normalize(item['hora'])
-                                print(f"\t - ✅ {user_id} - {aimharder_user} TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
+                                print(f"\t - ✅ {user_id} - TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
 
                                 try:
                                     resultado = book_class_trainning(driver, item)
