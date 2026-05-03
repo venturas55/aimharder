@@ -532,10 +532,8 @@ if __name__ == "__main__":
                                 (item for item in reservas if item['dia'] == tomorrow_name),
                                 None
                             )
-                            print("clase_manana:",clase_manana)
                             clase_manana['clase']=normalize(clase_manana['clase'])
                             clase_manana['hora']=normalize(clase_manana['hora'])
-                            print("normalize clase_manana:",clase_manana)
 
                             if not clase_manana:
                                 print(f"{fechalog} - No hay configuración para mañana")
@@ -545,6 +543,8 @@ if __name__ == "__main__":
                                 print(f"{fechalog} - Día no activo → no se reserva")
                                 continue
 
+                            print("normalize clase_manana:",clase_manana)
+                            
                             driver = login_to_aimharder(aimharder_user, aimharder_pass)
 
                             if not driver:
