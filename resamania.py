@@ -108,11 +108,11 @@ EMAIL_CONFIG = {
         "color": "#28a745",
         "to": "user"
     },
-    "espera": {
-        "subject": "En lista de espera 🟡",
-        "title": "Lista de espera",
+    "anticipacion": {
+        "subject": "No se ha respetado el plazo de anticipación 🟡",
+        "title": "Demasiado pronto",
         "color": "#ffc107",
-        "to": "user"
+        "to": "dev"
     },
     "llena": {
         "subject": "Clase llena ❌",
@@ -260,6 +260,10 @@ def book_class_resemania(driver, reserva_deseada):
                         "clase": reserva_deseada['clase'],
                         "hora": reserva_deseada['hora'],
                     }
+            elif "anticipación" in mensaje_final.lower():
+                return {
+                    "status":"anticipacion"
+                }
             else:
                 return {
                     "status": "error",
