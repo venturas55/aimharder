@@ -172,8 +172,10 @@ def hacer_scroll(driver, estado):
     )
 
     time.sleep(0.7)
+
 def book_class_resemania(driver, reserva_deseada):
     wait = WebDriverWait(driver,15)
+    encontrada=False
     try:
         if today.weekday() == 6:
                 try:
@@ -216,6 +218,7 @@ def book_class_resemania(driver, reserva_deseada):
             #print(texto)
 
             if reserva_deseada['hora'] in texto and reserva_deseada['clase'] in texto:
+                encontrada=True
                 print("🎯 Card encontrada")
                 #print(card.get_attribute("outerHTML"))
                 boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
@@ -229,11 +232,44 @@ def book_class_resemania(driver, reserva_deseada):
         #TODO: falta el detectar el mensaje del alert y si es ok
         #has superado el numero de reservas autorizado
         #ya estas inscrito en esta clase?
-        return {
-                    "status": "reservada",
-                    "clase": reserva_deseada['clase'],
-                    "hora": reserva_deseada['hora'],
+
+        # Esperar a que aparezca el snackbar
+        WebDriverWait(driver, 10).until(
+            lambda d: d.find_element(
+                By.CSS_SELECTOR,
+                ".MuiSnackbarContent-message"
+            ).text.strip()
+        )
+
+        # Esperar a que cambie del mensaje temporal
+        mensaje_final = WebDriverWait(driver, 20).until(
+            lambda d: (
+                (texto := d.find_element(
+                    By.CSS_SELECTOR,
+                    ".MuiSnackbarContent-message"
+                ).text.strip())
+                and texto != "Operación en curso"
+                and texto
+            )
+        )
+        print("Resultado final:", mensaje_final)
+        if encontrada:
+            if "realizada" in mensaje_final.lower():
+                return {
+                        "status": "reservada",
+                        "clase": reserva_deseada['clase'],
+                        "hora": reserva_deseada['hora'],
+                    }
+            else:
+                return {
+                    "status": "error",
+                    "mensaje": mensaje_final
                 }
+        else:
+            return {
+                        "status": "no_encontrada",
+                    }
+
 
     except Exception as e:
         print("❌ ERROR COMPLETO:")
