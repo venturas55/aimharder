@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import traceback
+from urllib.parse import quote
 import time
 from datetime import date,datetime, timedelta
 import subprocess

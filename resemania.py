@@ -7,6 +7,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import time
 from datetime import date,datetime, timedelta
+from urllib.parse import quote
 import os
 import subprocess
 import sys
@@ -67,6 +68,28 @@ tomorrow_week_map = {
     5: 'Domingo'
 }
 
+
+# Mapea weekday() a nombres
+after_tomorrow_week_map = {
+    5: 'Lunes',
+    6: 'Martes',
+    0: 'Miercoles',
+    1: 'Jueves',
+    2: 'Viernes',
+    3: 'Sababado',
+    4: 'Domingo'
+}
+
+# Mapea weekday() a nombres
+dia_a_buscar = {
+    5: 'Lun',
+    6: 'Mar',
+    0: 'Mié',
+    1: 'Jue',
+    2: 'Vie',
+    3: 'Sáb',
+    4: 'Dom'
+}
 # Mapea dia a clase 
 dias = {
     'Lunes':1,
@@ -123,124 +146,102 @@ def normalize(text):
 
     return text
 
-def get_text_or_empty(parent, by, value):
-    elements = parent.find_elements(by, value)
-    return elements[0].text.strip() if elements else ""
+def aparece_hora(driver, hora):
+    cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
+    for c in cards:
+        if hora in c.text:
+            return True
+    return False
 
-def book_class(driver, reserva_deseada, nextClase):
-    wait = WebDriverWait(driver, 15)
+def hacer_scroll(driver, estado):
+    container = driver.execute_script("""
+        return Array.from(document.querySelectorAll('div'))
+        .find(el => window.getComputedStyle(el).overflowY === 'auto');
+    """)
 
+    if container is None:
+        print("❌ No se encontró contenedor scrolleable")
+        return
+
+    estado["scroll"] += 1000
+
+    driver.execute_script(
+        "arguments[0].scrollTop = arguments[1];",
+        container,
+        estado["scroll"]
+    )
+
+    time.sleep(0.7)
+def book_class_resemania(driver, reserva_deseada):
+    wait = WebDriverWait(driver,15)
     try:
-        wait.until(EC.presence_of_element_located((By.ID, "weekDays")))
-    except TimeoutException:
-        return {"status": "error", "msg": "No cargó weekDays"}
-    
-    dias_disponibles = driver.find_elements(By.CSS_SELECTOR, "div#weekDays a")
-    print("Días disponibles:")
-    for d in dias_disponibles:
-        print(d.get_attribute("class"))
+        if today.weekday() == 6:
+                try:
+                    boton = driver.find_element(By.XPATH, '//button[.//svg[@data-testid="KeyboardArrowRightIcon"]]')
+                    boton.click()
+                except NoSuchElementException:
+                    print(f"{fechalog} - No se encontró botón nextWeek")
+        
+        #driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
+        #MuiGrid-root MuiGrid-container
+        #print("Estoy buscando "+reserva_deseada['dia_click'])
+        wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
+        wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
 
-    try:
-        anchor = wait.until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, f"div#weekDays a.{nextClase}")
-            )
-        )
-        anchor.click()
+        tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
+        #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
+        boton = wait.until(    EC.element_to_be_clickable((By.XPATH, f"//button[@value='{reserva_deseada['fecha_pasado_mañana']}']")))    
+        boton.click()
+        time.sleep(3)
+        cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
 
-    except TimeoutException:
-        clases = [d.get_attribute("class") for d in dias_disponibles]
+        driver.save_screenshot("/tmp/resamania_book1.png")
+ 
+
+        #card = WebDriverWait(driver, 5).until(        EC.presence_of_element_located((By.XPATH, xpath_card))        )
+        estado = {"scroll": 0}
+        for i in range(10):
+            if aparece_hora(driver, reserva_deseada['hora']):
+                break
+            hacer_scroll(driver,estado)
+        #hacer un scroll mas para asegurarme y verlo en la captura
+        hacer_scroll(driver,estado)
+
+        #vuelvo a leer las cards
+        cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
+        #print("=============================")
+        for card in cards:
+            texto = card.text.replace("\n", " ").replace("\xa0", " ")
+            #print(texto)
+
+            if reserva_deseada['hora'] in texto and reserva_deseada['clase'] in texto:
+                print("🎯 Card encontrada")
+                #print(card.get_attribute("outerHTML"))
+                boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
+                driver.execute_script("arguments[0].click();", boton)
+                #boton.click()
+                break
+        #print("=============================")
+        time.sleep(4)
+        driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
+ 
+        #TODO: falta el detectar el mensaje del alert y si es ok
+        #has superado el numero de reservas autorizado
+        #ya estas inscrito en esta clase?
         return {
-            "status": "error",
-            "msg": f"No existe {nextClase}. Disponibles: {clases}"
-        }
-    
-    wait.until(EC.staleness_of(anchor))
-
-    try:
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
-    except TimeoutException:
-        return {"status": "error", "msg": "No cargaron las clases"}
-
-    time.sleep(3)
-
-    class_blocks = driver.find_elements(By.CLASS_NAME, "bloqueClase")
-
-    for block in class_blocks:
-        class_name = get_text_or_empty(block, By.CLASS_NAME, "rvNombreCl")
-        class_horario = get_text_or_empty(block, By.CLASS_NAME, "rvHora")
-
-        print(f"DEBUG -> '{class_horario}' vs '{reserva_deseada['hora']}'")
-        #print(f"LEN -> {len(class_horario)} vs {len(reserva_deseada['hora'])}")
-        if reserva_deseada['clase'] == normalize(class_name) and normalize(class_horario) == reserva_deseada['hora']:
-            print("Clase encontrada")
-            instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
-            box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
-
-            # Ocultar cookies
-            try:
-                driver.execute_script("document.getElementById('eucookielaw').style.display = 'none';")
-            except Exception:
-                pass
-
-            try:
-                reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
-                reserve_link.click()
-            except NoSuchElementException:
-                return {"status": "error", "msg": "No se encontró botón reservar"}
-
-            # CLASE LLENA
-            try:
-                wait.until(EC.presence_of_element_located((By.ID, 'infoDialogBox')))
-                info_dialog = driver.find_element(By.ID, 'infoDialogBox')
-
-                if "La clase está llena" in info_dialog.text:
-                    return {
-                        "status": "llena",
-                        "clase": reserva_deseada['clase'],
-                        "hora": reserva_deseada['hora'],
-                        "box": box_name,
-                        "coach": instructor_name
-                    }
-
-            except TimeoutException:
-                pass
-
-            # LISTA DE ESPERA
-            try:
-                WebDriverWait(driver, 5).until(
-                    EC.visibility_of_element_located((
-                        By.XPATH,
-                        "//span[contains(@class, 'rvLista') and contains(text(), 'En lista de espera')]"
-                    ))
-                )
-
-                return {
-                    "status": "espera",
-                    "clase": reserva_deseada['clase'],
-                    "hora": reserva_deseada['hora'],
-                    "box": box_name,
-                    "coach": instructor_name
-                }
-
-            except TimeoutException:
-                return {
                     "status": "reservada",
                     "clase": reserva_deseada['clase'],
                     "hora": reserva_deseada['hora'],
-                    "box": box_name,
-                    "coach": instructor_name
                 }
-        else:
-            print("Clase no encontrada")
-    return {
-        "status": "no_encontrada",
-        "clase": reserva_deseada['clase'],
-        "hora": reserva_deseada['hora']
-    }
 
-def login_to_aimharder(username, password):
+    except Exception as e:
+        print("❌ ERROR COMPLETO:")
+        import traceback
+        traceback.print_exc()
+        return None
+    
+def login_to_resamania(username, password,gym):
 
     # Set up Chrome options
     chrome_options = webdriver.ChromeOptions()
@@ -256,6 +257,9 @@ def login_to_aimharder(username, password):
     # For VPS environment
     chrome_options.add_argument("--remote-debugging-port=9222")
     chrome_options.add_argument("--remote-debugging-address=0.0.0.0")
+    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+                     "Chrome/118.0.5993.117 Safari/537.36")
     
     # Set environment variables for VPS
     os.environ['WDM_LOG_LEVEL'] = '0'
@@ -302,11 +306,21 @@ def login_to_aimharder(username, password):
     
     try:
         # Navigate to aimharder.com
-        driver.get("https://login.aimharder.com/")
+        gym_encoded = quote(gym)
+
+        url = (
+            "https://api.resamania.com/oauth/login/enjoy?"
+            "client_id=142_vrmofh03k8omedrabc6ei1hq6l5aogu9zxmspp74cfu3i7bakur"
+            f"&redirect_uri=https://member.resamania.com/{gym_encoded}/"
+            "&response_type=code&locale=es"
+        )
+
+        driver.get(url)
+        #driver.get(f"https://api.resamania.com/oauth/login/enjoy?client_id=142_vrmofh03k8omedrabc6ei1hq6l5aogu9zxmspp74cfu3i7bakur&redirect_uri=https://member.resamania.com/{gym}/&response_type=code&locale=es")
         
         # Wait for the login form to load
         try:
-            wait.until(EC.presence_of_element_located((By.NAME, "username")))
+            wait.until(EC.presence_of_element_located((By.ID, "login_step_login_username")))
             print(f"{fechalog} - Login form found")
         except Exception as e:
             print(f"{fechalog} - Could not find login form: {str(e)}")
@@ -315,58 +329,30 @@ def login_to_aimharder(username, password):
             
         # Enter username and password
         try:
-            # Click cookie remove button
-            try:
-                cookie_remove_button = driver.find_element(By.CLASS_NAME, "removeCookie")
-                cookie_remove_button.click()
-                print(f"{fechalog} - Cookie removal button clicked")
-
-                # 🔥 CLAVE: esperar a que desaparezca o cambie DOM
-                wait.until(EC.staleness_of(cookie_remove_button))
-            except Exception as e:
-                print(f"{fechalog} - Cookie button not found: {str(e)}")
-                # Continue anyway since this might not be critical
-                pass
-          
-            # 🔥 VOLVER A BUSCAR ELEMENTOS
             # Enter username
-            #username_field = driver.find_element(By.ID, "mail")
-            username_field = wait.until(EC.presence_of_element_located((By.NAME, "username")))
+            username_field = wait.until(EC.presence_of_element_located((By.ID, "login_step_login_username")))
             username_field.clear()
             username_field.send_keys(username)
-            
+
+            login_button = wait.until(EC.element_to_be_clickable((By.ID,"login_step_login_submit")))
+            login_button.click()
+
             # Enter password
-            #password_field = driver.find_element(By.ID, "pw")
-            password_field = wait.until(EC.presence_of_element_located((By.NAME, "password")))
+            password_field = driver.find_element(By.ID, "_password")
             password_field.clear()
             password_field.send_keys(password)
-            
-            # Click login button
-            #submit_button = driver.find_element(By.ID, "loginSubmit")
-            submit_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
-            submit_button.click()
-            
-            # Wait for login to complete
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ahPicReservations")))
-            print(f"{fechalog} - Login successful")
-            
-            # Click reservations
-            reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
-            reservations_link.click()
-            print(f"{fechalog} - Clicked reservations link")
-            
-            # Wait for the class list to load     
-            if today.weekday() == 6:
-                try:
-                    driver.find_element(By.ID, "nextDay").click()
-                except NoSuchElementException:
-                    print(f"{fechalog} - No se encontró botón nextDay")
-        
-            return driver  # ✅ devolver SOLO si todo fue bien   
+            #password_field.send_keys(Keys.RETURN)
+            login_button = wait.until(EC.element_to_be_clickable((By.ID,"submit")))
+            login_button.click()
+            return driver,tmpdir  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
-            print(f"{fechalog} - Error during login process: {str(e)}")
+            print(f"{fechalog} - Error during login process: {repr(e)}")
+            print("URL en el fallo:", driver.current_url)
+            section_body = driver.find_element(By.TAG_NAME, "section").get_attribute("innerHTML")
+            print(section_body[:9000]) # solo una parte
+            driver.save_screenshot("/tmp/aimharder_error_login.png")
             driver.quit()
-            return
+            return None
             
     except Exception as e:
         print(f"{fechalog} - An error occurred: {str(e)}")
@@ -508,54 +494,57 @@ if __name__ == "__main__":
                 usuarios = cur.fetchall()
                 for usuario in usuarios:
                     tipo_app = usuario['tipo_app']
-                    if tipo_app == 'resemania':
+                    if tipo_app == 'resamania':
+                        print(f"{fechalog} - Procesando usuario {usuario['id']} con app {tipo_app}")
                         user_id = usuario['id']
                         aimharder_user = usuario['aimharder_user']
                         aimharder_pass = usuario['aimharder_pass']
+                        gym = usuario['gym']
                         periodicidad = usuario['periodicidad']
                         email_to = usuario['email']
 
                         cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                         reservas = cur.fetchall()
 
-                        print(reservas)
+                        #print(reservas)
                         #dias_deseados = [item['dia'] for item in reservas]
                         #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                         # ------------------ DAILY ------------------
-                        if periodicidad == 'daily' and int(ahora.strftime("%H"))<20:
-                            print(f" ⏭️ {aimharder_user} tiene daily")
+                        if periodicidad == 'daily':
+                            after_tomorrow_name = after_tomorrow_week_map[today.weekday()]
+                            print(f" ⏭️ {aimharder_user} tiene daily y pasado mañana es {after_tomorrow_name}")
 
-                            tomorrow_name = tomorrow_week_map[today.weekday()]
 
-                            clase_manana = next(
-                                (item for item in reservas if item['dia'] == tomorrow_name),
+                            clase_pasado_manana = next(
+                                (item for item in reservas if item['dia'] == after_tomorrow_name),
                                 None
                             )
-                            clase_manana['clase']=normalize(clase_manana['clase'])
-                            clase_manana['hora']=normalize(clase_manana['hora'])
+                            clase_pasado_manana['clase']=clase_pasado_manana['clase'] #clase no se normaliza (quita espacios en nombres compuestos y luego se buscan tal cual)
+                            clase_pasado_manana['hora']=normalize(clase_pasado_manana['hora'])
+                            clase_pasado_manana['dia_click']=dia_a_buscar[today.weekday()]
+                            pasao = today + timedelta(days=2)
+                            fechapasao =  pasao.strftime("%Y-%m-%d")
+                            clase_pasado_manana['fecha_pasado_mañana']=fechapasao
+                            print(clase_pasado_manana)
 
-                            if not clase_manana:
+                            if not clase_pasado_manana:
                                 print(f"{fechalog} - No hay configuración para mañana")
                                 continue
 
-                            if not clase_manana['activo']:
+                            if not clase_pasado_manana['activo']:
                                 print(f"{fechalog} - Día no activo → no se reserva")
                                 continue
 
-                            print("normalize clase_manana:",clase_manana)
-                            
-                            driver = login_to_aimharder(aimharder_user, aimharder_pass)
-
+                            print("normalize clase_pasado_manana:",clase_pasado_manana)
+                            result  = login_to_resamania(aimharder_user, aimharder_pass,gym)
+                            driver, tmpdir = result
                             if not driver:
                                 print(f"Error en login de {aimharder_user}")
                                 continue
 
                             try:
-                                tomorrow = today + timedelta(days=1)
-                                nextClase = "wds" + tomorrow.strftime("%Y%m%d")
-
-                                resultado = book_class(driver, clase_manana, nextClase)
+                                resultado = book_class_resemania(driver, clase_pasado_manana)
                                 print("Resultado:", resultado)
 
                                 gestionar_resultado_email(resultado, email_to, email_to_dev)
@@ -563,41 +552,7 @@ if __name__ == "__main__":
                             finally:
                                 driver.quit()
 
-                        # ------------------ WEEKLY ------------------
-                        elif periodicidad == 'weekly' and int(ahora.strftime("%H"))>20:
-                            print(f"⏭️ {aimharder_user} tiene weekly")
-
-                            if today.weekday() != 6:
-                            #if False:
-                                print("No es domingo")
-                                continue
-
-                            driver = login_to_aimharder(aimharder_user, aimharder_pass)
-
-                            if not driver:
-                                print(f"Error en login de {aimharder_user}")
-                                continue
-
-                            try:
-                                for reserva in reservas:
-
-                                    if not reserva['activo']:
-                                        continue
-
-                                    proxima = dias.get(reserva['dia'])
-                                    tomorrow = today + timedelta(days=proxima)
-
-                                    nextClase = "wds" + tomorrow.strftime("%Y%m%d")
-
-                                    print(f"{fechalog} - Reservando: {nextClase} - {reserva}")
-
-                                    resultado = book_class(driver, reserva, nextClase)
-                                    print("Resultado:", resultado)
-
-                                    gestionar_resultado_email(resultado, email_to, email_to_dev)
-
-                            finally:
-                                driver.quit()
+                      
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL: {str(e)}")
