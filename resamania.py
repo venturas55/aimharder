@@ -254,7 +254,7 @@ def book_class_resemania(driver, reserva_deseada):
         )
         print("Resultado final:", mensaje_final)
         if encontrada:
-            if "realizada" in mensaje_final.lower():
+            if "realizado la reserva" in mensaje_final.lower():
                 return {
                         "status": "reservada",
                         "clase": reserva_deseada['clase'],
