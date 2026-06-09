@@ -639,7 +639,7 @@ if __name__ == "__main__":
                                     print("\t Resultado:", resultado)
                                     gestionar_resultado_email(resultado, email_to, email_to_dev)
 
-                                    if resultado.status=="reservada":
+                                    if resultado.get("status")=="reservada":
                                         cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
                                 except Exception as e:
                                         print("\t Error reservando:", e)
