@@ -219,7 +219,7 @@ def book_class_resemania(driver, reserva_deseada):
 
             if reserva_deseada['hora'] in texto and reserva_deseada['clase'] in texto:
                 encontrada=True
-                print("\t🎯 Card encontrada")
+                print("🎯 Card encontrada")
                 #print(card.get_attribute("outerHTML"))
                 #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
                 boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
@@ -254,7 +254,7 @@ def book_class_resemania(driver, reserva_deseada):
                 and texto
             )
         )
-        print("\tResultado final:", mensaje_final)
+        print("Resultado final:", mensaje_final)
         if encontrada:
             if "realizado la reserva" in mensaje_final.lower():
                 return {
@@ -522,134 +522,79 @@ def send_email(subject, body,message, to_email):
         server.login(email_account, email_password)
         server.send_message(msg)
         server.quit()
-        print(f"\t{fechalog} - Correo enviado")
+        print(f"{fechalog} - Correo enviado")
     except Exception as e:
-        print(f"\t{fechalog} - No se pudo enviar el correo: {str(e)}")
+        print(f"{fechalog} - No se pudo enviar el correo: {str(e)}")
 
 if __name__ == "__main__":
     # Example usage - replace these with your actual credentials
     try:
         with conn:
             with conn.cursor() as cur:
-
-                try:
-                            
-                    cur.execute("UPDATE bookings  SET reserva_realizada = 0, fecha_evento = fecha_evento + INTERVAL 7 DAY WHERE reserva_realizada = 1  AND fecha_evento < NOW()")
-                    conn.commit()
-                    #cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
-                except:
-                    pass
-
                 # Obtener configuraciones de todos los usuarios que tengan una
                 cur.execute("SELECT * from usuarios u LEFT JOIN configs c ON u.id=c.user_id")
                 usuarios = cur.fetchall()
                 for usuario in usuarios:
-                    alguna_reserva=False
-                    user_id = usuario['id']
-                    aimharder_user = usuario['aimharder_user']
-                    aimharder_pass = usuario['aimharder_pass']
-                    periodicidad = usuario['periodicidad']
-                    email_to = usuario['email']
                     tipo_app = usuario['tipo_app']
-                    gym = usuario['gym']
-                    cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
-                    reservas = cur.fetchall()
-
                     if tipo_app == 'resamania':
-                        print(f"{fechalog} - USUARIO: {aimharder_user}")
-                        driver = None  # 👈 importante
+                        print(f"{fechalog} - Procesando usuario {usuario['id']} con app {tipo_app}")
+                        user_id = usuario['id']
+                        aimharder_user = usuario['aimharder_user']
+                        aimharder_pass = usuario['aimharder_pass']
+                        gym = usuario['gym']
+                        periodicidad = usuario['periodicidad']
+                        email_to = usuario['email']
 
-                        try:
-                            for item in reservas:
-                                # Filtros base (ANTES de cualquier cálculo)
-                                if not item['activo']:
-                                    continue
-                                if not item['hora']:
-                                    continue
+                        cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
+                        reservas = cur.fetchall()
 
-                                # 1. Inicializar fecha_evento si hace falta
-                            #if not item['fecha_evento']:
-                                # calcular como ya haces ahora
-                                texto = item['dia'] + " " + item['hora']
-                                dia_str, horas = texto.split(" ", 1)
-                                hora_inicio = horas.strip()
-                                # 👇 adaptamos tu mapeo
-                                dia_objetivo = dias[dia_str] - 1
-                                dias_hasta = (dia_objetivo - ahora.weekday()) % 7
+                        #print(reservas)
+                        #dias_deseados = [item['dia'] for item in reservas]
+                        #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
-                                hora_evento = datetime.strptime(hora_inicio, "%H:%M").time()
-
-                                fecha_evento = ahora + timedelta(days=dias_hasta)
-                                fecha_evento = fecha_evento.replace(
-                                    hour=hora_evento.hour,
-                                    minute=hora_evento.minute,
-                                    second=0,
-                                    microsecond=0
-                                )
-                                # Si es hoy pero ya pasó la hora → siguiente semana
-                                if dias_hasta == 0 and fecha_evento < ahora:
-                                    fecha_evento += timedelta(days=7)
-
-                                # 🔥 guardarlo en BD
-                                cur.execute("""
-                                    UPDATE bookings 
-                                    SET fecha_evento = %s 
-                                    WHERE id = %s
-                                """, (fecha_evento, item['id']))
-
-                                item['fecha_evento'] = fecha_evento
-
-                                # 2. Filtros
-                                if not item['activo'] or item['reserva_realizada']:
-                                    continue
-
-                                # 3. Usar fecha_evento REAL (BD)
-                                if not item['fecha_evento']:  #Por robustez
-                                    continue
-                                fecha_evento = item['fecha_evento']
-                                diferencia = fecha_evento - ahora
-
-                                #print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
-                                alguna_reserva=True
-
-                                if diferencia.total_seconds() > 48 * 3600:
-                                    print(f"\t - ❌  NO tiene reservas en las proximas 48h. {item['clase']} el {item['dia']} a las {item['hora']}")
-                                    continue
-                                
-                                ## 🔥 4. LOGIN SOLO UNA VEZ
-                                if driver is None:
-                                    result = login_to_resamania(aimharder_user, aimharder_pass,gym)
-                                    driver, tmpdir = result
-                                    if not driver:
-                                        print("\t Error en login")
-                                        break  # no tiene sentido seguir
-
-                                # 5. Reservar
-                                item['clase']=item['clase']
-                                item['hora']=normalize(item['hora'])
-                                pasao = today + timedelta(days=2)
-                                fechapasao =  pasao.strftime("%Y-%m-%d")
-                                item['fecha_pasado_mañana']=fechapasao
+                        # ------------------ DAILY ------------------
+                        if periodicidad == 'daily':
+                            after_tomorrow_name = after_tomorrow_week_map[today.weekday()]
+                            print(f" ⏭️ {aimharder_user} tiene daily y pasado mañana es {after_tomorrow_name}")
 
 
-                                print(f"\t - ✅ {user_id} - TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
+                            clase_pasado_manana = next(
+                                (item for item in reservas if item['dia'] == after_tomorrow_name),
+                                None
+                            )
+                            clase_pasado_manana['clase']=clase_pasado_manana['clase'] #clase no se normaliza (quita espacios en nombres compuestos y luego se buscan tal cual)
+                            clase_pasado_manana['hora']=normalize(clase_pasado_manana['hora'])
+                            clase_pasado_manana['dia_click']=dia_a_buscar[today.weekday()]
+                            pasao = today + timedelta(days=2)
+                            fechapasao =  pasao.strftime("%Y-%m-%d")
+                            clase_pasado_manana['fecha_pasado_mañana']=fechapasao
+                            print(clase_pasado_manana)
 
-                                try:
-                                    resultado = book_class_resemania(driver, item)
-                                    print("\t Resultado:", resultado)
-                                    gestionar_resultado_email(resultado, email_to, email_to_dev)
+                            if not clase_pasado_manana:
+                                print(f"{fechalog} - No hay configuración para mañana")
+                                continue
 
-                                    if resultado.get("status")=="reservada":
-                                        cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
-                                except Exception as e:
-                                        print("\t Error reservando:", e)
-                            conn.commit()
-                        finally:
-                            # 🔥 5. Cerrar driver UNA VEZ
-                            if driver:
+                            if not clase_pasado_manana['activo']:
+                                print(f"{fechalog} - Día no activo → no se reserva")
+                                continue
+
+                            print("normalize clase_pasado_manana:",clase_pasado_manana)
+                            result  = login_to_resamania(aimharder_user, aimharder_pass,gym)
+                            driver, tmpdir = result
+                            if not driver:
+                                print(f"Error en login de {aimharder_user}")
+                                continue
+
+                            try:
+                                resultado = book_class_resemania(driver, clase_pasado_manana)
+                                print("Resultado:", resultado)
+
+                                gestionar_resultado_email(resultado, email_to, email_to_dev)
+
+                            finally:
                                 driver.quit()
-                        if not alguna_reserva:
-                                print(f"\t - 🤷‍♂️🤷 {user_id} - {aimharder_user} No tiene clases a reservar")
+
+                      
 
     except Exception as e:
         print(f"{fechalog} - Error GLOBAL: {str(e)}")
