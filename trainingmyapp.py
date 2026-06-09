@@ -429,37 +429,37 @@ if __name__ == "__main__":
                                 if not item['hora']:
                                     continue
 
-                                # 1. Inicializar fecha_evento si hace falta
-                                if not item['fecha_evento']:
-                                    # calcular como ya haces ahora
-                                    texto = item['dia'] + " " + item['hora']
-                                    dia_str, horas = texto.split(" ", 1)
-                                    hora_inicio = horas.split("/")[0].strip()
-                                    # 👇 adaptamos tu mapeo
-                                    dia_objetivo = dias[dia_str] - 1
-                                    dias_hasta = (dia_objetivo - ahora.weekday()) % 7
+                                # 1. Inicializar fecha_evento si hace falta o actualizar...
+                            #if not item['fecha_evento']:
+                                # calcular como ya haces ahora
+                                texto = item['dia'] + " " + item['hora']
+                                dia_str, horas = texto.split(" ", 1)
+                                hora_inicio = horas.split("/")[0].strip()
+                                # 👇 adaptamos tu mapeo
+                                dia_objetivo = dias[dia_str] - 1
+                                dias_hasta = (dia_objetivo - ahora.weekday()) % 7
 
-                                    hora_evento = datetime.strptime(hora_inicio, "%H:%M").time()
+                                hora_evento = datetime.strptime(hora_inicio, "%H:%M").time()
 
-                                    fecha_evento = ahora + timedelta(days=dias_hasta)
-                                    fecha_evento = fecha_evento.replace(
-                                        hour=hora_evento.hour,
-                                        minute=hora_evento.minute,
-                                        second=0,
-                                        microsecond=0
-                                    )
-                                    # Si es hoy pero ya pasó la hora → siguiente semana
-                                    if dias_hasta == 0 and fecha_evento < ahora:
-                                        fecha_evento += timedelta(days=7)
+                                fecha_evento = ahora + timedelta(days=dias_hasta)
+                                fecha_evento = fecha_evento.replace(
+                                    hour=hora_evento.hour,
+                                    minute=hora_evento.minute,
+                                    second=0,
+                                    microsecond=0
+                                )
+                                # Si es hoy pero ya pasó la hora → siguiente semana
+                                if dias_hasta == 0 and fecha_evento < ahora:
+                                    fecha_evento += timedelta(days=7)
 
-                                    # 🔥 guardarlo en BD
-                                    cur.execute("""
-                                        UPDATE bookings 
-                                        SET fecha_evento = %s 
-                                        WHERE id = %s
-                                    """, (fecha_evento, item['id']))
+                                # 🔥 guardarlo en BD
+                                cur.execute("""
+                                    UPDATE bookings 
+                                    SET fecha_evento = %s 
+                                    WHERE id = %s
+                                """, (fecha_evento, item['id']))
 
-                                    item['fecha_evento'] = fecha_evento
+                                item['fecha_evento'] = fecha_evento
 
                                 # 2. Filtros
                                 if not item['activo'] or item['reserva_realizada']:
