@@ -219,7 +219,7 @@ def book_class_resemania(driver, reserva_deseada):
 
             if reserva_deseada['hora'] in texto and reserva_deseada['clase'] in texto:
                 encontrada=True
-                print("🎯 Card encontrada")
+                print("\t🎯 Card encontrada")
                 #print(card.get_attribute("outerHTML"))
                 #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
                 boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
@@ -254,7 +254,7 @@ def book_class_resemania(driver, reserva_deseada):
                 and texto
             )
         )
-        print("Resultado final:", mensaje_final)
+        print("\tResultado final:", mensaje_final)
         if encontrada:
             if "realizado la reserva" in mensaje_final.lower():
                 return {
@@ -522,9 +522,9 @@ def send_email(subject, body,message, to_email):
         server.login(email_account, email_password)
         server.send_message(msg)
         server.quit()
-        print(f"{fechalog} - Correo enviado")
+        print(f"\t{fechalog} - Correo enviado")
     except Exception as e:
-        print(f"{fechalog} - No se pudo enviar el correo: {str(e)}")
+        print(f"\t{fechalog} - No se pudo enviar el correo: {str(e)}")
 
 if __name__ == "__main__":
     # Example usage - replace these with your actual credentials
