@@ -111,6 +111,9 @@ Se añade al crontab. Así que se ejecutan dos crontabs.
 
 Ahora la app de Flask, solo leerá de la base de datos dichos datos.
 
+## UPGRADE 08/06/2026:
+Se añade resamania.py para reservar clase de pasado mañana en app resamania
+Se completa resamaniaNew.py para reservar con 48de antelación (como el gimnasio tipo trainningmyapp) Falta probarlo.
 
 ## para ver imagenes del VPS
 cd /tmp
