@@ -174,7 +174,7 @@ def book_class(driver, reserva_deseada, nextClase):
         print(f"DEBUG -> '{class_horario}' vs '{reserva_deseada['hora']}'")
         #print(f"LEN -> {len(class_horario)} vs {len(reserva_deseada['hora'])}")
         if reserva_deseada['clase'] == normalize(class_name) and normalize(class_horario) == reserva_deseada['hora']:
-            print("Clase encontrada")
+            print("\tClase encontrada")
             instructor_name = get_text_or_empty(block, By.CLASS_NAME, "rvCoach")
             box_name = get_text_or_empty(block, By.CLASS_NAME, "rvBox")
 
@@ -233,7 +233,7 @@ def book_class(driver, reserva_deseada, nextClase):
                     "coach": instructor_name
                 }
         else:
-            print("Clase no encontrada")
+            print("\tClase no encontrada")
     return {
         "status": "no_encontrada",
         "clase": reserva_deseada['clase'],
@@ -294,7 +294,7 @@ def login_to_aimharder(username, password):
         driver = webdriver.Chrome(options=chrome_options)
         wait = WebDriverWait(driver,15)
 
-        print(f"{fechalog} - Successfully initialized Chromium driver")
+        #print(f"{fechalog} - Successfully initialized Chromium driver")
 
     except Exception as e:
         print(f"{fechalog} - Error initializing Chromium driver: {str(e)}")
@@ -319,7 +319,7 @@ def login_to_aimharder(username, password):
             try:
                 cookie_remove_button = driver.find_element(By.CLASS_NAME, "removeCookie")
                 cookie_remove_button.click()
-                print(f"{fechalog} - Cookie removal button clicked")
+                #print(f"{fechalog} - Cookie removal button clicked")
 
                 # 🔥 CLAVE: esperar a que desaparezca o cambie DOM
                 wait.until(EC.staleness_of(cookie_remove_button))
@@ -353,7 +353,7 @@ def login_to_aimharder(username, password):
             # Click reservations
             reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
             reservations_link.click()
-            print(f"{fechalog} - Clicked reservations link")
+            #print(f"{fechalog} - Clicked reservations link")
             
             # Wait for the class list to load     
             if today.weekday() == 6:
@@ -518,7 +518,7 @@ if __name__ == "__main__":
                         cur.execute("SELECT * from bookings where user_id=%s", (user_id,))
                         reservas = cur.fetchall()
 
-                        print(reservas)
+                        #print(reservas)
                         #dias_deseados = [item['dia'] for item in reservas]
                         #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
@@ -543,7 +543,7 @@ if __name__ == "__main__":
                                 print(f"{fechalog} - Día no activo → no se reserva")
                                 continue
 
-                            print("normalize clase_manana:",clase_manana)
+                            #print("normalize clase_manana:",clase_manana)
                             
                             driver = login_to_aimharder(aimharder_user, aimharder_pass)
 
@@ -589,7 +589,7 @@ if __name__ == "__main__":
 
                                     nextClase = "wds" + tomorrow.strftime("%Y%m%d")
 
-                                    print(f"{fechalog} - Reservando: {nextClase} - {reserva}")
+                                    #print(f"{fechalog} - Reservando: {nextClase} - {reserva}")
 
                                     resultado = book_class(driver, reserva, nextClase)
                                     print("Resultado:", resultado)
