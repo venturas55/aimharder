@@ -618,8 +618,8 @@ if __name__ == "__main__":
                                 
                                 ## 🔥 4. LOGIN SOLO UNA VEZ
                                 if driver is None:
-                                    driver = login_to_resamania(aimharder_user, aimharder_pass,gym)
-
+                                    result = login_to_resamania(aimharder_user, aimharder_pass,gym)
+                                    driver, tmpdir = result
                                     if not driver:
                                         print("\t Error en login")
                                         break  # no tiene sentido seguir
