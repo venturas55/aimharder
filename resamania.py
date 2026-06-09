@@ -221,7 +221,8 @@ def book_class_resemania(driver, reserva_deseada):
                 encontrada=True
                 print("🎯 Card encontrada")
                 #print(card.get_attribute("outerHTML"))
-                boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
+                #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
+                boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
                 driver.execute_script("arguments[0].click();", boton)
                 #boton.click()
                 break
@@ -229,9 +230,10 @@ def book_class_resemania(driver, reserva_deseada):
         time.sleep(4)
         driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
  
-        #TODO: falta el detectar el mensaje del alert y si es ok
+        #Operación en curso
         #has superado el numero de reservas autorizado
-        #ya estas inscrito en esta clase?
+        #Se ha realizado la reserva
+        #Se ha anulado la reserva
 
         # Esperar a que aparezca el snackbar
         WebDriverWait(driver, 10).until(
