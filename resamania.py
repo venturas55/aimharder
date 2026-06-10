@@ -174,6 +174,7 @@ def hacer_scroll(driver, estado):
     time.sleep(0.7)
 
 def book_class_resemania(driver, reserva_deseada):
+    print("Reservando clase")
     wait = WebDriverWait(driver,15)
     encontrada=False
     try:
@@ -284,6 +285,7 @@ def book_class_resemania(driver, reserva_deseada):
         return None
     
 def cancel_class_resemania(driver, cancelacion_deseada):
+    print("cancelando clase")
     wait = WebDriverWait(driver,15)
     encontrada=False
     try:
@@ -708,12 +710,12 @@ if __name__ == "__main__":
                                 # 2. Filtros
                                 if not item['activo'] and item['reserva_Realizada'] and fecha_evento > ahora :
                                     try:
-                                        print("Cancelando clase")
                                         result = login_to_resamania(aimharder_user, aimharder_pass,gym)
                                         driver, tmpdir = result
                                         resultado = cancel_class_resemania(driver, item)
                                         cur.execute("update bookings set reserva_realizada=0 where id=%s", (item['id'],))
                                         conn.commit()
+                                        print("Clase cancelada")
                                         continue
                                     except:
                                         print("Error intentando cancelar clase")
