@@ -283,6 +283,113 @@ def book_class_resemania(driver, reserva_deseada):
         traceback.print_exc()
         return None
     
+def cancel_class_resemania(driver, cancelacion_deseada):
+    wait = WebDriverWait(driver,15)
+    encontrada=False
+    try:
+        if today.weekday() == 6:
+                try:
+                    boton = driver.find_element(By.XPATH, '//button[.//svg[@data-testid="KeyboardArrowRightIcon"]]')
+                    boton.click()
+                except NoSuchElementException:
+                    print(f"{fechalog} - No se encontró botón nextWeek")
+        
+        #driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
+        #MuiGrid-root MuiGrid-container
+        #print("Estoy buscando "+reserva_deseada['dia_click'])
+        wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
+        wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
+
+
+        tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Desinscribirse')]]")
+        #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
+        boton = wait.until(    EC.element_to_be_clickable((By.XPATH, f"//button[@value='{cancelacion_deseada['fecha_pasado_mañana']}']")))    
+        boton.click()
+        time.sleep(3)
+        cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
+
+        driver.save_screenshot("/tmp/resamania_book1.png")
+ 
+
+        #card = WebDriverWait(driver, 5).until(        EC.presence_of_element_located((By.XPATH, xpath_card))        )
+        estado = {"scroll": 0}
+        for i in range(10):
+            if aparece_hora(driver, cancelacion_deseada['hora']):
+                break
+            hacer_scroll(driver,estado)
+        #hacer un scroll mas para asegurarme y verlo en la captura
+        hacer_scroll(driver,estado)
+
+        #vuelvo a leer las cards
+        cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
+        #print("=============================")
+        for card in cards:
+            texto = card.text.replace("\n", " ").replace("\xa0", " ")
+            #print(texto)
+
+            if cancelacion_deseada['hora'] in texto and cancelacion_deseada['clase'] in texto:
+                encontrada=True
+                print("\t🎯 Card encontrada")
+                #print(card.get_attribute("outerHTML"))
+                #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
+                boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Desinscribirse')]")
+                driver.execute_script("arguments[0].click();", boton)
+                #boton.click()
+                break
+        #print("=============================")
+        time.sleep(4)
+        driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
+ 
+        #Operación en curso
+        #has superado el numero de reservas autorizado
+        #Se ha realizado la reserva
+        #Se ha anulado la reserva
+
+        # Esperar a que aparezca el snackbar
+        WebDriverWait(driver, 10).until(
+            lambda d: d.find_element(
+                By.CSS_SELECTOR,
+                ".MuiSnackbarContent-message"
+            ).text.strip()
+        )
+
+        # Esperar a que cambie del mensaje temporal
+        mensaje_final = WebDriverWait(driver, 20).until(
+            lambda d: (
+                (texto := d.find_element(
+                    By.CSS_SELECTOR,
+                    ".MuiSnackbarContent-message"
+                ).text.strip())
+                and texto != "Operación en curso"
+                and texto
+            )
+        )
+        print("\tResultado final:", mensaje_final)
+        if encontrada:
+            if "anulado la reserva" in mensaje_final.lower():
+                return {
+                        "status": "cancelada",
+                        "clase": cancelacion_deseada['clase'],
+                        "hora": cancelacion_deseada['hora'],
+                    }
+            
+            else:
+                return {
+                    "status": "error",
+                    "mensaje": mensaje_final
+                }
+        else:
+            return {
+                        "status": "no_encontrada",
+                    }
+
+
+    except Exception as e:
+        print("❌ ERROR COMPLETO:")
+        import traceback
+        traceback.print_exc()
+        return None
+   
 def login_to_resamania(username, password,gym):
 
     # Set up Chrome options
@@ -565,8 +672,7 @@ if __name__ == "__main__":
                                 if not item['activo']:
                                     continue
                                 if not item['hora']:
-                                    continue
-
+                                    continue                         
                                 # 1. Inicializar fecha_evento si hace falta
                             #if not item['fecha_evento']:
                                 # calcular como ya haces ahora
@@ -598,6 +704,20 @@ if __name__ == "__main__":
                                 """, (fecha_evento, item['id']))
 
                                 item['fecha_evento'] = fecha_evento
+                                
+
+                                if not item['activo'] and item['reserva_Realizada'] and fecha_evento > ahora :
+                                    try:
+                                        print("Cancelando clase")
+                                        result = login_to_resamania(aimharder_user, aimharder_pass,gym)
+                                        driver, tmpdir = result
+                                        resultado = cancel_class_resemania(driver, item)
+                                        cur.execute("update bookings set reserva_realizada=0 where id=%s", (item['id'],))
+                                        conn.commit()
+                                        continue
+                                    except:
+                                        print("Error intentando cancelar clase")
+                                    
 
                                 # 2. Filtros
                                 if not item['activo'] or item['reserva_realizada']:
