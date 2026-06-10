@@ -670,13 +670,6 @@ if __name__ == "__main__":
 
                         try:
                             for item in reservas:
-                                # Filtros base (ANTES de cualquier cálculo)
-                                if not item['activo']:
-                                    continue
-                                if not item['hora']:
-                                    continue                         
-                                # 1. Inicializar fecha_evento si hace falta
-                            #if not item['fecha_evento']:
                                 # calcular como ya haces ahora
                                 texto = item['dia'] + " " + item['hora']
                                 dia_str, horas = texto.split(" ", 1)
@@ -697,17 +690,7 @@ if __name__ == "__main__":
                                 # Si es hoy pero ya pasó la hora → siguiente semana
                                 if dias_hasta == 0 and fecha_evento < ahora:
                                     fecha_evento += timedelta(days=7)
-
-                                # 🔥 guardarlo en BD
-                                cur.execute("""
-                                    UPDATE bookings 
-                                    SET fecha_evento = %s 
-                                    WHERE id = %s
-                                """, (fecha_evento, item['id']))
-
-                                item['fecha_evento'] = fecha_evento
-                                
-                                # 2. Filtros
+                                # Filtros base (ANTES de cualquier cálculo)
                                 if not item['activo'] and item['reserva_Realizada'] and fecha_evento > ahora :
                                     try:
                                         result = login_to_resamania(aimharder_user, aimharder_pass,gym)
@@ -719,7 +702,24 @@ if __name__ == "__main__":
                                         continue
                                     except:
                                         print("Error intentando cancelar clase")
-                                    
+                                if not item['activo']:
+                                    continue
+                                if not item['hora']:
+                                    continue                         
+                                # 1. Inicializar fecha_evento si hace falta
+                            #if not item['fecha_evento']:
+                               
+
+                                # 🔥 guardarlo en BD
+                                cur.execute("""
+                                    UPDATE bookings 
+                                    SET fecha_evento = %s 
+                                    WHERE id = %s
+                                """, (fecha_evento, item['id']))
+
+                                item['fecha_evento'] = fecha_evento
+                                
+                                # 2. Filtros                                  
                                 #if not item['activo'] or item['reserva_realizada']:
                                 #    continue
 
