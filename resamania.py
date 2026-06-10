@@ -300,10 +300,10 @@ def cancel_class_resemania(driver, cancelacion_deseada):
         wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
-
+        fecha_evento = cancelacion_deseada['fecha_evento'].strftime("%Y-%m-%d")
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Desinscribirse')]]")
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
-        boton = wait.until(    EC.element_to_be_clickable((By.XPATH, f"//button[@value='{cancelacion_deseada['fecha_pasado_mañana']}']")))    
+        boton = wait.until(    EC.element_to_be_clickable((By.XPATH, f"//button[@value='{fecha_evento}']")))    
         boton.click()
         time.sleep(3)
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
@@ -705,7 +705,7 @@ if __name__ == "__main__":
 
                                 item['fecha_evento'] = fecha_evento
                                 
-
+                                # 2. Filtros
                                 if not item['activo'] and item['reserva_Realizada'] and fecha_evento > ahora :
                                     try:
                                         print("Cancelando clase")
@@ -718,10 +718,8 @@ if __name__ == "__main__":
                                     except:
                                         print("Error intentando cancelar clase")
                                     
-
-                                # 2. Filtros
-                                if not item['activo'] or item['reserva_realizada']:
-                                    continue
+                                #if not item['activo'] or item['reserva_realizada']:
+                                #    continue
 
                                 # 3. Usar fecha_evento REAL (BD)
                                 if not item['fecha_evento']:  #Por robustez
