@@ -180,7 +180,7 @@ def book_class_resemania(driver, reserva_deseada):
     try:
         if today.weekday() == 6:
                 try:
-                    boton = driver.find_element(By.XPATH, '//button[.//svg[@data-testid="KeyboardArrowRightIcon"]]')
+                    boton = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[.//*[@data-testid="KeyboardArrowRightIcon"]]')))
                     boton.click()
                 except NoSuchElementException:
                     print(f"{fechalog} - No se encontró botón nextWeek")
