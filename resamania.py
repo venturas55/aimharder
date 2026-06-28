@@ -180,6 +180,7 @@ def book_class_resemania(driver, reserva_deseada):
     try:
         if today.weekday() == 6:
                 try:
+                    driver.save_screenshot("/tmp/resemania_nextweek.png")
                     boton = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[.//*[@data-testid="KeyboardArrowRightIcon"]]')))
                     boton.click()
                 except NoSuchElementException:
