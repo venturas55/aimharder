@@ -181,10 +181,30 @@ def book_class_resemania(driver, reserva_deseada):
         if today.weekday() == 6:
                 try:
                     driver.save_screenshot("/tmp/resemania_nextweek.png")
-                    boton = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[.//*[@data-testid="KeyboardArrowRightIcon"]]')))
-                    boton.click()
-                except NoSuchElementException:
+
+                    boton = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable(
+                            (By.XPATH, '//button[.//*[@data-testid="KeyboardArrowRightIcon"]]')
+                        )
+                    )
+
+                    driver.execute_script(
+                        "arguments[0].scrollIntoView({block:'center'});",
+                        boton
+                    )
+
+                    time.sleep(0.5)
+
+                    driver.execute_script(
+                        "arguments[0].click();",
+                        boton
+                    )
+
+                except TimeoutException:
                     print(f"{fechalog} - No se encontró botón nextWeek")
+
+                except Exception as e:
+                    print(f"{fechalog} - Error click: {e}")
         
         #driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
         #MuiGrid-root MuiGrid-container
