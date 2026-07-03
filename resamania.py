@@ -254,6 +254,7 @@ def book_class_resemania(driver, reserva_deseada):
                 boton = card.find_element(By.TAG_NAME, "button")
                 texto_boton = boton.text.strip()
                 if texto_boton == "Desinscribirse":
+                    print("\t Clase ya reservada")
                     return {
                         "status": "ya_estaba_reservada",
                         "clase": reserva_deseada["clase"],
@@ -262,6 +263,7 @@ def book_class_resemania(driver, reserva_deseada):
 
                 elif texto_boton == "Inscribirse":
                     driver.execute_script("arguments[0].click();", boton)
+                    print("\t Haciendo click en reservar clase")
                     break
                 #break
         #print("=============================")
