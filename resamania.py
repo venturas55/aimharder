@@ -253,8 +253,8 @@ def book_class_resemania(driver, reserva_deseada):
                 #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
                 #boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
                 boton = card.find_element(By.TAG_NAME, "button")
-                texto_boton = boton.text.strip()
-                if texto_boton == "Desinscribirse":
+                texto_boton = boton.text.strip().lower()
+                if texto_boton.startswith("desinscrib"):
                     print("\t Clase ya reservada")
                     return {
                         "status": "ya_estaba_reservada",
@@ -262,13 +262,14 @@ def book_class_resemania(driver, reserva_deseada):
                         "hora": reserva_deseada["hora"]
                     }
 
-                elif texto_boton == "Inscribirse":
+                elif texto_boton.startswith("inscrib"):
                     print("\t Haciendo click en reservar clase")
                     se_hace_click=True
                     driver.execute_script("arguments[0].click();", boton)
                     break
                 else:
                     print(f"\t No se encuentra boton inscribirse ni desinscribirse: {texto_boton}")
+                    print(repr(boton.text))
                     return {
                         "status": "error",
                         "mensaje": f"Botón inesperado: {texto_boton}"
