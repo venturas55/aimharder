@@ -286,7 +286,9 @@ def book_class_resemania(driver, reserva_deseada):
                     }
             elif "anticipación" in mensaje_final.lower():
                 return {
-                    "status":"anticipacion"
+                    "status":"anticipacion",
+                    "clase": reserva_deseada['clase'],
+                    "hora": reserva_deseada['hora'],
                 }
             else:
                 return {
@@ -748,7 +750,15 @@ if __name__ == "__main__":
                                 if not item['fecha_evento']:  #Por robustez
                                     continue
                                 fecha_evento = item['fecha_evento']
+                                print("datetime.now()     :", datetime.now())
+                                print("datetime.utcnow()  :", datetime.utcnow())
+                                print("tzname             :", time.tzname)
                                 diferencia = fecha_evento - ahora
+                                print("ahora:", ahora, ahora.tzinfo)
+                                print("fecha_evento:", fecha_evento, fecha_evento.tzinfo)
+                                print("segundos:", diferencia.total_seconds())
+                                print("UTC ahora:", datetime.utcnow())
+                                print("Local ahora:", datetime.now())
 
                                 #print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
                                 alguna_reserva=True
