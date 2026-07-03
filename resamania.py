@@ -242,6 +242,7 @@ def book_class_resemania(driver, reserva_deseada):
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
         #print("=============================")
         for card in cards:
+            se_hace_click=False
             texto = card.text.replace("\n", " ").replace("\xa0", " ")
             #print(texto)
 
@@ -262,62 +263,69 @@ def book_class_resemania(driver, reserva_deseada):
                     }
 
                 elif texto_boton == "Inscribirse":
-                    driver.execute_script("arguments[0].click();", boton)
                     print("\t Haciendo click en reservar clase")
+                    se_hace_click=True
+                    driver.execute_script("arguments[0].click();", boton)
                     break
+                else:
+                    print(f"\t No se encuentra boton inscribirse ni desinscribirse: {texto_boton}")
+                    return {
+                        "status": "error",
+                        "mensaje": f"Botón inesperado: {texto_boton}"
+                    }
                 #break
         #print("=============================")
-        time.sleep(4)
-        driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
- 
-        #Operación en curso
-        #has superado el numero de reservas autorizado
-        #Se ha realizado la reserva
-        #Se ha anulado la reserva
+        if se_hace_click:
+            time.sleep(4)
+            driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
+    
+            #Operación en curso
+            #has superado el numero de reservas autorizado
+            #Se ha realizado la reserva
+            #Se ha anulado la reserva
 
-        # Esperar a que aparezca el snackbar
-        WebDriverWait(driver, 10).until(
-            lambda d: d.find_element(
-                By.CSS_SELECTOR,
-                ".MuiSnackbarContent-message"
-            ).text.strip()
-        )
-
-        # Esperar a que cambie del mensaje temporal
-        mensaje_final = WebDriverWait(driver, 20).until(
-            lambda d: (
-                (texto := d.find_element(
+            # Esperar a que aparezca el snackbar
+            WebDriverWait(driver, 10).until(
+                lambda d: d.find_element(
                     By.CSS_SELECTOR,
                     ".MuiSnackbarContent-message"
-                ).text.strip())
-                and texto != "Operación en curso"
-                and texto
+                ).text.strip()
             )
-        )
-        print("\tResultado final:", mensaje_final)
-        if encontrada:
-            if "realizado la reserva" in mensaje_final.lower():
-                return {
-                        "status": "reservada",
+
+            # Esperar a que cambie del mensaje temporal
+            mensaje_final = WebDriverWait(driver, 20).until(
+                lambda d: (
+                    (texto := d.find_element(
+                        By.CSS_SELECTOR,
+                        ".MuiSnackbarContent-message"
+                    ).text.strip())
+                    and texto != "Operación en curso"
+                    and texto
+                )
+            )
+            print("\tResultado final:", mensaje_final)
+            if encontrada:
+                if "realizado la reserva" in mensaje_final.lower():
+                    return {
+                            "status": "reservada",
+                            "clase": reserva_deseada['clase'],
+                            "hora": reserva_deseada['hora'],
+                        }
+                elif "anticipación" in mensaje_final.lower():
+                    return {
+                        "status":"anticipacion",
                         "clase": reserva_deseada['clase'],
                         "hora": reserva_deseada['hora'],
                     }
-            elif "anticipación" in mensaje_final.lower():
-                return {
-                    "status":"anticipacion",
-                    "clase": reserva_deseada['clase'],
-                    "hora": reserva_deseada['hora'],
-                }
+                else:
+                    return {
+                        "status": "error",
+                        "mensaje": mensaje_final
+                    }
             else:
                 return {
-                    "status": "error",
-                    "mensaje": mensaje_final
-                }
-        else:
-            return {
-                        "status": "no_encontrada",
-                    }
-
+                            "status": "no_encontrada",
+                        }
 
     except Exception as e:
         print("❌ ERROR COMPLETO:")
