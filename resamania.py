@@ -108,6 +108,12 @@ EMAIL_CONFIG = {
         "color": "#28a745",
         "to": "user"
     },
+    "ya_estaba_reservada": {
+        "subject": "La reserva ya se encontraba hecha ✅",
+        "title": "Reserva ya realizada",
+        "color": "#83cb94",
+        "to": "user"
+    },
     "anticipacion": {
         "subject": "No se ha respetado el plazo de anticipación 🟡",
         "title": "Demasiado pronto",
@@ -244,10 +250,20 @@ def book_class_resemania(driver, reserva_deseada):
                 print("\t🎯 Card encontrada")
                 #print(card.get_attribute("outerHTML"))
                 #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
-                boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
-                driver.execute_script("arguments[0].click();", boton)
-                #boton.click()
-                break
+                #boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
+                boton = card.find_element(By.TAG_NAME, "button")
+                texto_boton = boton.text.strip()
+                if texto_boton == "Desinscribirse":
+                    return {
+                        "status": "ya_estaba_reservada",
+                        "clase": reserva_deseada["clase"],
+                        "hora": reserva_deseada["hora"]
+                    }
+
+                elif texto_boton == "Inscribirse":
+                    driver.execute_script("arguments[0].click();", boton)
+                    break
+                #break
         #print("=============================")
         time.sleep(4)
         driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
@@ -750,15 +766,7 @@ if __name__ == "__main__":
                                 if not item['fecha_evento']:  #Por robustez
                                     continue
                                 fecha_evento = item['fecha_evento']
-                                print("datetime.now()     :", datetime.now())
-                                print("datetime.utcnow()  :", datetime.utcnow())
-                                print("tzname             :", time.tzname)
                                 diferencia = fecha_evento - ahora
-                                print("ahora:", ahora, ahora.tzinfo)
-                                print("fecha_evento:", fecha_evento, fecha_evento.tzinfo)
-                                print("segundos:", diferencia.total_seconds())
-                                print("UTC ahora:", datetime.utcnow())
-                                print("Local ahora:", datetime.now())
 
                                 #print(f"\t {ahora} vs {fecha_evento} => {diferencia}")
                                 alguna_reserva=True
@@ -790,7 +798,7 @@ if __name__ == "__main__":
                                     print("\t Resultado:", resultado)
                                     gestionar_resultado_email(resultado, email_to, email_to_dev)
 
-                                    if resultado.get("status")=="reservada":
+                                    if resultado.get("status")=="reservada" or resultado.get("status")=="ya_estaba_reservada":
                                         cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
                                 except Exception as e:
                                         print("\t Error reservando:", e)
