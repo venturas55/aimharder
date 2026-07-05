@@ -179,8 +179,10 @@ def hacer_scroll(driver, estado):
 
     time.sleep(0.7)
 
-def book_class_resemania(driver, reserva_deseada):
+def book_class_resemania(driver, reserva_deseada,gym):
     print("Reservando clase")
+    driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
+    time.sleep(3)
     wait = WebDriverWait(driver,15)
     encontrada=False
     try:
@@ -222,8 +224,15 @@ def book_class_resemania(driver, reserva_deseada):
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
         print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
-        boton = wait.until(EC.element_to_be_clickable((By.XPATH, f"//button[@value='{reserva_deseada['fecha_reserva']}']")))    
-        boton.click()
+        print("URL ACTUAL:", driver.current_url)
+
+        botones_fecha = driver.find_elements(By.XPATH, "//button[@value]")
+
+        print("Fechas visibles:")
+        for b in botones_fecha:
+            print("  ", b.get_attribute("value"))
+        boton = wait.until(EC.presence_of_element_located((By.XPATH, f"//button[@value='{reserva_deseada['fecha_reserva']}']")))    
+        driver.execute_script("arguments[0].click();", boton)
         time.sleep(3)
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
 
@@ -728,12 +737,16 @@ if __name__ == "__main__":
                         try:
                             for item in reservas:
                                 # calcular como ya haces ahora
+                                if not hora_inicio:
+                                    print(f"Booking {item['id']} sin hora")
+                                    continue
                                 texto = item['dia'] + " " + item['hora']
                                 dia_str, horas = texto.split(" ", 1)
                                 hora_inicio = horas.strip()
                                 # 👇 adaptamos tu mapeo
                                 dia_objetivo = dias[dia_str] - 1
                                 dias_hasta = (dia_objetivo - ahora.weekday()) % 7
+                              
 
                                 hora_evento = datetime.strptime(hora_inicio, "%H:%M").time()
 
@@ -763,7 +776,9 @@ if __name__ == "__main__":
                                 if not item['activo']:
                                     continue
                                 if not item['hora']:
-                                    continue                         
+                                    continue    
+                                if item['reserva_realizada']:
+                                    continue                        
                                 # 1. Inicializar fecha_evento si hace falta
                             #if not item['fecha_evento']:
                                
@@ -815,7 +830,7 @@ if __name__ == "__main__":
                                 print(f"\t - ✅ {user_id} - TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
 
                                 try:
-                                    resultado = book_class_resemania(driver, item)
+                                    resultado = book_class_resemania(driver, item,gym)
                                     print("\t Resultado:", resultado)
                                     if resultado is None: #para que no de error la gestion de correos si resultado fuera none
                                         print("book_class_resemania devolvió None")
