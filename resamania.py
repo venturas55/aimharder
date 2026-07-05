@@ -700,6 +700,7 @@ if __name__ == "__main__":
                 try:
                             
                     cur.execute("UPDATE bookings  SET reserva_realizada = 0, fecha_evento = fecha_evento + INTERVAL 7 DAY WHERE reserva_realizada = 1  AND fecha_evento < NOW()")
+                    print(f"{fechalog} - Se han reseteado las reservas pasadas a 0 y se ha actualizado la fecha_evento a la siguiente semana para las reservas realizadas")
                     conn.commit()
                     #cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
                 except:
@@ -749,6 +750,7 @@ if __name__ == "__main__":
                                 # Filtros base (ANTES de cualquier cálculo)
                                 if not item['activo'] and item['reserva_Realizada'] and fecha_evento > ahora :
                                     try:
+                                        print("Procedo a cancelar clase que ya pasó y no está activa")
                                         result = login_to_resamania(aimharder_user, aimharder_pass,gym)
                                         driver, tmpdir = result
                                         resultado = cancel_class_resemania(driver, item)
