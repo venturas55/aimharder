@@ -666,8 +666,8 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
     body = build_email_html(config["title"], message, config["color"])
 
     to = email_to if config["to"] == "user" else email_to_dev
-
-    send_email(config["subject"], body,message, to)
+    if status=="reservada" or status=="llena" or status=="error": #mandar email solo si es reserva o error, no para los demas estados
+        send_email(config["subject"], body,message, to)
 
 def send_email(subject, body,message, to_email):
     msg = MIMEMultipart("alternative")
@@ -818,10 +818,11 @@ if __name__ == "__main__":
                                     if resultado is None: #para que no de error la gestion de correos si resultado fuera none
                                         print("book_class_resemania devolvió None")
                                         continue
-                                    gestionar_resultado_email(resultado, email_to, email_to_dev)
-
                                     if resultado.get("status")=="reservada" or resultado.get("status")=="ya_estaba_reservada":
                                         cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
+                                    
+                                    gestionar_resultado_email(resultado, email_to, email_to_dev)
+                                    
                                 except Exception as e:
                                         print("\t Error reservando:", e)
                             conn.commit()
