@@ -112,7 +112,7 @@ EMAIL_CONFIG = {
         "subject": "La reserva ya se encontraba hecha ✅",
         "title": "Reserva ya realizada",
         "color": "#83cb94",
-        "to": "user"
+        "to": "dev"
     },
     "anticipacion": {
         "subject": "No se ha respetado el plazo de anticipación 🟡",
