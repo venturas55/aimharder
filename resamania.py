@@ -221,7 +221,8 @@ def book_class_resemania(driver, reserva_deseada):
 
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
-        boton = wait.until(    EC.element_to_be_clickable((By.XPATH, f"//button[@value='{reserva_deseada['fecha_pasado_mañana']}']")))    
+        print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
+        boton = wait.until(EC.element_to_be_clickable((By.XPATH, f"//button[@value='{reserva_deseada['fecha_reserva']}']")))    
         boton.click()
         time.sleep(3)
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
@@ -332,7 +333,12 @@ def book_class_resemania(driver, reserva_deseada):
         print("❌ ERROR COMPLETO:")
         import traceback
         traceback.print_exc()
-        return None
+        return {
+            "status":"error",
+            "mensaje":str(e),
+            "clase": reserva_deseada["clase"],
+            "hora": reserva_deseada["hora"]
+        }
     
 def cancel_class_resemania(driver, cancelacion_deseada):
     print("cancelando clase")
@@ -797,9 +803,11 @@ if __name__ == "__main__":
                                 # 5. Reservar
                                 item['clase']=item['clase']
                                 item['hora']=normalize(item['hora'])
-                                pasao = today + timedelta(days=2)
-                                fechapasao =  pasao.strftime("%Y-%m-%d")
-                                item['fecha_pasado_mañana']=fechapasao
+                                #pasao = today + timedelta(days=2)
+                                #fechapasao =  pasao.strftime("%Y-%m-%d")
+                                #item['fecha_reserva']=fechapasao
+                                item['fecha_reserva'] = fecha_evento.strftime("%Y-%m-%d")
+
 
 
                                 print(f"\t - ✅ {user_id} - TIENE una clase en menos de 48h. {item['clase']} el {item['dia']} a las {item['hora']} ")
@@ -807,6 +815,9 @@ if __name__ == "__main__":
                                 try:
                                     resultado = book_class_resemania(driver, item)
                                     print("\t Resultado:", resultado)
+                                    if resultado is None: #para que no de error la gestion de correos si resultado fuera none
+                                        print("book_class_resemania devolvió None")
+                                        continue
                                     gestionar_resultado_email(resultado, email_to, email_to_dev)
 
                                     if resultado.get("status")=="reservada" or resultado.get("status")=="ya_estaba_reservada":
