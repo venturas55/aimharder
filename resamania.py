@@ -737,12 +737,13 @@ if __name__ == "__main__":
                         try:
                             for item in reservas:
                                 # calcular como ya haces ahora
-                                if not hora_inicio:
-                                    print(f"Booking {item['id']} sin hora")
-                                    continue
+                      
                                 texto = item['dia'] + " " + item['hora']
                                 dia_str, horas = texto.split(" ", 1)
                                 hora_inicio = horas.strip()
+                                if not hora_inicio:
+                                    print(f"Booking {item['id']} sin hora")
+                                    continue
                                 # 👇 adaptamos tu mapeo
                                 dia_objetivo = dias[dia_str] - 1
                                 dias_hasta = (dia_objetivo - ahora.weekday()) % 7
