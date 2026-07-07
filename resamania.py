@@ -169,7 +169,7 @@ def hacer_scroll(driver, estado):
         print("❌ No se encontró contenedor scrolleable")
         return
 
-    estado["scroll"] += 1000
+    estado["scroll"] += 600
 
     driver.execute_script(
         "arguments[0].scrollTop = arguments[1];",
@@ -218,9 +218,10 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #MuiGrid-root MuiGrid-container
         #print("Estoy buscando "+reserva_deseada['dia_click'])
         wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
+        print("esperando boton inscribirse")
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
-
+        print("esperando tarjetas")
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
         print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
