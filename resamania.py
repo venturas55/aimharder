@@ -120,6 +120,12 @@ EMAIL_CONFIG = {
         "color": "#ffc107",
         "to": "dev"
     },
+    "maximo_reservas": {
+        "subject": "Has superado el límite de reservas 🟡",
+        "title": "Ya tienes una reserva para ese dia",
+        "color": "#ffc107",
+        "to": "user"
+    },
     "llena": {
         "subject": "Clase llena ❌",
         "title": "Clase llena",
@@ -220,13 +226,13 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
         #MuiGrid-root MuiGrid-container
         #print("Estoy buscando "+reserva_deseada['dia_click'])
-        print("esperando item mui-component-select-activity")
+        #print("esperando item mui-component-select-activity")
         driver.save_screenshot("/tmp/resemania_activity-inscribirse.png")
         #wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
-        print("esperando boton inscribirse")
+        #print("esperando boton inscribirse")
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
-        print("esperando tarjetas")
+        #print("esperando tarjetas")
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
         print("Tarjetas encontradas:", len(tarjetas))
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
@@ -235,9 +241,9 @@ def book_class_resemania(driver, reserva_deseada,gym):
 
         botones_fecha = driver.find_elements(By.XPATH, "//button[@value]")
 
-        print("Fechas visibles:")
-        for b in botones_fecha:
-            print("  ", b.get_attribute("value"))
+        #print("Fechas visibles:")
+        #for b in botones_fecha:
+        #    print("  ", b.get_attribute("value"))
         boton = wait.until(EC.presence_of_element_located((By.XPATH, f"//button[@value='{reserva_deseada['fecha_reserva']}']")))    
         driver.execute_script("arguments[0].click();", boton)
         time.sleep(3)
@@ -332,6 +338,12 @@ def book_class_resemania(driver, reserva_deseada,gym):
                 elif "anticipación" in mensaje_final.lower():
                     return {
                         "status":"anticipacion",
+                        "clase": reserva_deseada['clase'],
+                        "hora": reserva_deseada['hora'],
+                    }
+                elif "superado el número de reservas" in mensaje_final.lower():
+                    return {
+                        "status":"maximo_reservas",
                         "clase": reserva_deseada['clase'],
                         "hora": reserva_deseada['hora'],
                     }
@@ -625,7 +637,7 @@ def build_email_html(title, message, status_color):
                 <!-- Button -->
                 <tr>
                   <td align="center" style="padding:10px 20px 30px;">
-                    <a href="#" style="background:{status_color}; color:white; text-decoration:none; padding:14px 24px; border-radius:8px; font-size:15px; font-weight:600; display:inline-block;">
+                    <a href="https://member.resamania.com/enjoy-samaranch/" style="background:{status_color}; color:white; text-decoration:none; padding:14px 24px; border-radius:8px; font-size:15px; font-weight:600; display:inline-block;">
                       Ver mis reservas
                     </a>
                   </td>
@@ -676,6 +688,8 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
             message = f"La clase de {clase}a las {hora} esta llena y el cupo de lista de espera tambien. Lo siento."
         case "no_encontrada":
             message = f"La clase de {clase} a las {hora} no se ha encontrado entre las clases disponibles para ese dia"
+        case "maximo_reservas":
+            message = f"No se ha podido reservar la clase de {clase} a las {hora} porque ya tienes una reserva para ese dia. Recuerda que solo puedes reservar una clase por dia."
         case "error":
             mensaje = res.get("mensaje", "N/A") 
             message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}. El desarrollador estará trabajando en ello para solventarlo.\n\n{mensaje}"
