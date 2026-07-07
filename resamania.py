@@ -217,7 +217,8 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
         #MuiGrid-root MuiGrid-container
         #print("Estoy buscando "+reserva_deseada['dia_click'])
-        wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
+        print("esperando item mui-component-select-activity")
+        #wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
         print("esperando boton inscribirse")
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
