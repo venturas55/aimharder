@@ -218,6 +218,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #MuiGrid-root MuiGrid-container
         #print("Estoy buscando "+reserva_deseada['dia_click'])
         print("esperando item mui-component-select-activity")
+        driver.save_screenshot("/tmp/resemania_activity-inscribirse.png")
         #wait.until(EC.presence_of_element_located((By.ID, "mui-component-select-activity")))
         print("esperando boton inscribirse")
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
