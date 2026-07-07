@@ -338,6 +338,8 @@ def book_class_resemania(driver, reserva_deseada,gym):
                 else:
                     return {
                         "status": "error",
+                        "clase": reserva_deseada['clase'],
+                        "hora": reserva_deseada['hora'],
                         "mensaje": mensaje_final
                     }
             else:
@@ -664,6 +666,7 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
 
     clase = res.get("clase", "N/A")
     hora = res.get("hora", "N/A")   
+    
     match status:
         case "reservada":
             message = f"La clase de {clase} a las {hora} se ha reservado con exito. A darle duro."
@@ -674,7 +677,8 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
         case "no_encontrada":
             message = f"La clase de {clase} a las {hora} no se ha encontrado entre las clases disponibles para ese dia"
         case "error":
-            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}. El desarrollador estará trabajando en ello para solventarlo."
+            mensaje = res.get("mensaje", "N/A") 
+            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}. El desarrollador estará trabajando en ello para solventarlo.\n\n{mensaje}"
         case _:
             message = res.get("msg", "Estado desconocido")
     
