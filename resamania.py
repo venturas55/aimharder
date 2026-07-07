@@ -181,9 +181,10 @@ def hacer_scroll(driver, estado):
 
 def book_class_resemania(driver, reserva_deseada,gym):
     print("Reservando clase en gym:", gym)
+    time.sleep(1)
     driver.save_screenshot("/tmp/resemania_antes.png")
-    driver.get(f"https://member.resamania.com/{gym}")
-    driver.save_screenshot("/tmp/resemania_adespues.png")
+    #driver.get(f"https://member.resamania.com/{gym}")
+    driver.save_screenshot("/tmp/resemania_despues.png")
     time.sleep(3)
     wait = WebDriverWait(driver,15)
     encontrada=False
@@ -227,6 +228,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
 
         print("esperando tarjetas")
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
+        print("Tarjetas encontradas:", len(tarjetas))
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
         print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
         print("URL ACTUAL:", driver.current_url)
