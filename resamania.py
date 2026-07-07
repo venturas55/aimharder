@@ -180,8 +180,8 @@ def hacer_scroll(driver, estado):
     time.sleep(0.7)
 
 def book_class_resemania(driver, reserva_deseada,gym):
-    print("Reservando clase")
-    driver.get(f"https://member.resamania.com/{gym}/planning?club=%2Fenjoy%2Fclubs%2F2374")
+    print("Reservando clase en gym:", gym)
+    driver.get(f"https://member.resamania.com/{gym}")
     time.sleep(3)
     wait = WebDriverWait(driver,15)
     encontrada=False
