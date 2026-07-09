@@ -260,10 +260,10 @@ def book_class_resemania(driver, reserva_deseada,gym):
             hacer_scroll(driver,estado)
         #hacer un scroll mas para asegurarme y verlo en la captura
         hacer_scroll(driver,estado)
-
         #vuelvo a leer las cards
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
         #print("=============================")
+        se_hace_click=False
         for card in cards:
             se_hace_click=False
             texto = card.text.replace("\n", " ").replace("\xa0", " ")
