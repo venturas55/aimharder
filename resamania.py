@@ -195,8 +195,10 @@ def book_class_resemania(driver, reserva_deseada,gym):
     wait = WebDriverWait(driver,15)
     encontrada=False
     try:
-        if today.weekday() == 6:
+        if today.weekday() >= 5:
+                print("Hoy es fin de semana dia ",today.weekday() )
                 try:
+                    
                     driver.save_screenshot("/tmp/resemania_nextweek.png")
 
                     boton = WebDriverWait(driver, 10).until(
