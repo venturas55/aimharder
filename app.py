@@ -193,7 +193,11 @@ def guardar_basico():
                     ON DUPLICATE KEY UPDATE
                         hora = VALUES(hora),
                         clase = VALUES(clase),
-                        activo = VALUES(activo)
+                        activo = VALUES(activo),
+                        fecha_evento = TIMESTAMP(
+                            DATE(COALESCE(fecha_evento, NOW())),
+                            VALUES(hora)
+                               )
                 """, (session['id'], d, hora, clase,activo))
 
             conn.commit()
