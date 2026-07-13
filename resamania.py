@@ -277,29 +277,45 @@ def book_class_resemania(driver, reserva_deseada,gym):
                 #print(card.get_attribute("outerHTML"))
                 #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
                 #boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
-                boton = card.find_element(By.TAG_NAME, "button")
-                texto_boton = boton.text.strip().lower()
-                if texto_boton.startswith("desinscrib"):
-                    print("\t Clase ya reservada")
-                    return {
-                        "status": "ya_estaba_reservada",
-                        "clase": reserva_deseada["clase"],
-                        "hora": reserva_deseada["hora"]
-                    }
+                botones = card.find_elements(By.TAG_NAME, "button")
+                if botones:
+                    boton = botones[0]
+                    texto_boton = boton.text.strip().lower()
+                    if texto_boton.startswith("desinscrib"):
+                        print("\t Clase ya reservada")
+                        return {
+                            "status": "ya_estaba_reservada",
+                            "clase": reserva_deseada["clase"],
+                            "hora": reserva_deseada["hora"]
+                        }
 
-                elif texto_boton.startswith("inscrib"):
-                    print("\t Haciendo click en reservar clase")
-                    se_hace_click=True
-                    driver.execute_script("arguments[0].click();", boton)
-                    break
+                    elif texto_boton.startswith("inscrib"):
+                        print("\t Haciendo click en reservar clase")
+                        se_hace_click=True
+                        driver.execute_script("arguments[0].click();", boton)
+                        break
+                    else:
+                        print(f"\t No se encuentra boton inscribirse ni desinscribirse: {texto_boton}")
+                        print(repr(boton.text))
+                        return {
+                            "status": "error",
+                            "mensaje": f"Botón inesperado: {texto_boton}"
+                        }
+                    #break
                 else:
-                    print(f"\t No se encuentra boton inscribirse ni desinscribirse: {texto_boton}")
-                    print(repr(boton.text))
-                    return {
-                        "status": "error",
-                        "mensaje": f"Botón inesperado: {texto_boton}"
-                    }
-                #break
+                    print("\t No se encuentra boton inscribirse ni desinscribirse")
+                    spans = card.find_elements(
+                        By.XPATH,
+                        ".//span[contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚ', 'abcdefghijklmnopqrstuvwxyzáéíóú'), 'completo')]"
+                    )
+
+                    if spans:
+                        print("\tClase completa")
+                        return {
+                            "status": "completa",
+                            "clase": reserva_deseada["clase"],
+                            "hora": reserva_deseada["hora"]
+                        }
         #print("=============================")
         if se_hace_click:
             time.sleep(4)
@@ -734,8 +750,7 @@ if __name__ == "__main__":
             with conn.cursor() as cur:
 
                 try:
-                            
-                    cur.execute("UPDATE bookings  SET reserva_realizada = 0, fecha_evento = fecha_evento + INTERVAL 7 DAY WHERE reserva_realizada = 1  AND fecha_evento < NOW()")
+                    cur.execute("UPDATE bookings  SET reserva_realizada = 0, fecha_evento =TIMESTAMP(DATE(fecha_evento + INTERVAL 7 DAY), hora) WHERE reserva_realizada = 1  AND fecha_evento < NOW()")
                     print(f"{fechalog} - Se han reseteado las reservas pasadas a 0 y se ha actualizado la fecha_evento a la siguiente semana para las reservas realizadas")
                     conn.commit()
                     #cur.execute("update bookings set reserva_realizada=1 where id=%s", (item['id'],))  #lo marco como reserva realizada y si la hora es superior lo reseteo a 0.
