@@ -273,7 +273,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
 
             if reserva_deseada['hora'] in texto and reserva_deseada['clase'] in texto:
                 encontrada=True
-                print("\t🎯 Card encontrada")
+                print("\t🎯 Card encontrada:",card.get_attribute("outerHTML"))
                 #print(card.get_attribute("outerHTML"))
                 #boton = card.find_element(By.XPATH, ".//button[contains(., 'Inscribirse')]")
                 #boton = card.find_element(By.XPATH, ".//button[starts-with(normalize-space(.), 'Inscribirse')]")
