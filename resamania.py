@@ -234,9 +234,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #print("esperando boton inscribirse")
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
-        #print("esperando tarjetas")
-        tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
-        print("Tarjetas encontradas:", len(tarjetas))
+        cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
         #print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
         #print("URL ACTUAL:", driver.current_url)
@@ -249,7 +247,6 @@ def book_class_resemania(driver, reserva_deseada,gym):
         boton = wait.until(EC.presence_of_element_located((By.XPATH, f"//button[@value='{reserva_deseada['fecha_reserva']}']")))    
         driver.execute_script("arguments[0].click();", boton)
         time.sleep(5)
-        cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
 
         driver.save_screenshot("/tmp/resamania_book1.png")
  
@@ -267,7 +264,6 @@ def book_class_resemania(driver, reserva_deseada,gym):
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
         #print("=============================")
         se_hace_click=False
-        print(f"\tCards encontradas: {len(cards)}")
         print(f" OuterHTML de la primera card: {cards[0].get_attribute('outerHTML') if cards else 'No hay cards'}")
         driver.save_screenshot("/tmp/buscandoclase.png")
         for card in cards:
@@ -420,7 +416,6 @@ def cancel_class_resemania(driver, cancelacion_deseada):
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")))
 
         fecha_evento = cancelacion_deseada['fecha_evento'].strftime("%Y-%m-%d")
-        tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Desinscribirse')]]")
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
         boton = wait.until(    EC.element_to_be_clickable((By.XPATH, f"//button[@value='{fecha_evento}']")))    
         boton.click()
