@@ -238,8 +238,8 @@ def book_class_resemania(driver, reserva_deseada,gym):
         tarjetas = driver.find_elements(By.XPATH, "//div[.//button[contains(.,'Inscribirse')]]")
         print("Tarjetas encontradas:", len(tarjetas))
         #boton = wait.until(    EC.element_to_be_clickable(        (By.XPATH, f"//button[.//span[contains(., '{reserva_deseada['dia_click']}')]]")    ))
-        print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
-        print("URL ACTUAL:", driver.current_url)
+        #print(f"{fechalog} - Buscando fecha: {reserva_deseada['fecha_reserva']}")
+        #print("URL ACTUAL:", driver.current_url)
 
         botones_fecha = driver.find_elements(By.XPATH, "//button[@value]")
 
@@ -258,6 +258,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
         estado = {"scroll": 0}
         for i in range(10):
             if aparece_hora(driver, reserva_deseada['hora']):
+                print("\t🎯 Hora encontrada en la página")
                 break
             hacer_scroll(driver,estado)
         #hacer un scroll mas para asegurarme y verlo en la captura
@@ -318,6 +319,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
                         }
         #print("=============================")
         if se_hace_click:
+            print("\t Click hecho, esperando resultado...")
             time.sleep(4)
             driver.save_screenshot(f"/tmp/resamania_reserva_resultado.png")
     
