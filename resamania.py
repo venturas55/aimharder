@@ -267,6 +267,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
         #print("=============================")
         se_hace_click=False
+        print(f"\tBuscando clase {reserva_deseada['clase']} a las {reserva_deseada['hora']}")
         for card in cards:
             se_hace_click=False
             texto = card.text.replace("\n", " ").replace("\xa0", " ")
