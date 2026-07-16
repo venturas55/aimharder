@@ -287,7 +287,8 @@ def book_class_resemania(driver, reserva_deseada,gym):
                         return {
                             "status": "ya_estaba_reservada",
                             "clase": reserva_deseada["clase"],
-                            "hora": reserva_deseada["hora"]
+                            "hora": reserva_deseada["hora"],
+                            "fecha": reserva_deseada["fecha_evento"]
                         }
 
                     elif texto_boton.startswith("inscrib"):
@@ -311,11 +312,12 @@ def book_class_resemania(driver, reserva_deseada,gym):
                     )
 
                     if spans:
-                        print("\tClase completa")
+                        print("\tDesafortunadamente la clase ya se encuentra completa")
                         return {
                             "status": "completa",
                             "clase": reserva_deseada["clase"],
-                            "hora": reserva_deseada["hora"]
+                            "hora": reserva_deseada["hora"],
+                            "fecha": reserva_deseada["fecha_evento"]
                         }
         #print("=============================")
         if se_hace_click:
@@ -354,24 +356,28 @@ def book_class_resemania(driver, reserva_deseada,gym):
                             "status": "reservada",
                             "clase": reserva_deseada['clase'],
                             "hora": reserva_deseada['hora'],
+                            "fecha": reserva_deseada["fecha_evento"]
                         }
                 elif "anticipación" in mensaje_final.lower():
                     return {
                         "status":"anticipacion",
                         "clase": reserva_deseada['clase'],
                         "hora": reserva_deseada['hora'],
+                        "fecha": reserva_deseada["fecha_evento"]
                     }
                 elif "superado el número de reservas" in mensaje_final.lower():
                     return {
                         "status":"maximo_reservas",
                         "clase": reserva_deseada['clase'],
                         "hora": reserva_deseada['hora'],
+                        "fecha": reserva_deseada["fecha_evento"]
                     }
                 else:
                     return {
                         "status": "error",
                         "clase": reserva_deseada['clase'],
                         "hora": reserva_deseada['hora'],
+                        "fecha": reserva_deseada["fecha_evento"],
                         "mensaje": mensaje_final
                     }
             else:
@@ -387,7 +393,8 @@ def book_class_resemania(driver, reserva_deseada,gym):
             "status":"error",
             "mensaje":str(e),
             "clase": reserva_deseada["clase"],
-            "hora": reserva_deseada["hora"]
+            "hora": reserva_deseada["hora"],
+            "fecha": reserva_deseada["fecha_evento"]
         }
     
 def cancel_class_resemania(driver, cancelacion_deseada):
@@ -697,22 +704,23 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
     config = EMAIL_CONFIG[status]
 
     clase = res.get("clase", "N/A")
-    hora = res.get("hora", "N/A")   
+    hora = res.get("hora", "N/A")
+    fecha = res.get("fecha", "N/A")  
     
     match status:
         case "reservada":
-            message = f"La clase de {clase} a las {hora} se ha reservado con exito. A darle duro."
+            message = f"La clase de {clase} a las {hora} del {fecha} se ha reservado con exito. A darle duro."
         case "espera":
-            message = f"La clase de {clase} a las {hora} esta llena, pero se te ha apuntado en lista de espera"
+            message = f"La clase de {clase} a las {hora} del {fecha} esta llena, pero se te ha apuntado en lista de espera"
         case "llena":
-            message = f"La clase de {clase}a las {hora} esta llena y el cupo de lista de espera tambien. Lo siento."
+            message = f"La clase de {clase}a las {hora} del {fecha} esta llena y el cupo de lista de espera tambien. Lo siento."
         case "no_encontrada":
-            message = f"La clase de {clase} a las {hora} no se ha encontrado entre las clases disponibles para ese dia"
+            message = f"La clase de {clase} a las {hora} del {fecha} no se ha encontrado entre las clases disponibles para ese dia"
         case "maximo_reservas":
-            message = f"No se ha podido reservar la clase de {clase} a las {hora} porque ya tienes una reserva para ese dia. Recuerda que solo puedes reservar una clase por dia."
+            message = f"No se ha podido reservar la clase de {clase} a las {hora} del {fecha} porque ya tienes una reserva para ese dia. Recuerda que solo puedes reservar una clase por dia."
         case "error":
             mensaje = res.get("mensaje", "N/A") 
-            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}. El desarrollador estará trabajando en ello para solventarlo.\n\n{mensaje}"
+            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}del {fecha}. \n\n{mensaje}\n\nEl desarrollador estará trabajando en ello para solventarlo."
         case _:
             message = res.get("msg", "Estado desconocido")
     
