@@ -248,7 +248,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #    print("  ", b.get_attribute("value"))
         boton = wait.until(EC.presence_of_element_located((By.XPATH, f"//button[@value='{reserva_deseada['fecha_reserva']}']")))    
         driver.execute_script("arguments[0].click();", boton)
-        time.sleep(3)
+        time.sleep(5)
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
 
         driver.save_screenshot("/tmp/resamania_book1.png")
@@ -268,7 +268,9 @@ def book_class_resemania(driver, reserva_deseada,gym):
         #print("=============================")
         se_hace_click=False
         print(f"\tBuscando clase {reserva_deseada['clase']} a las {reserva_deseada['hora']}")
+        driver.save_screenshot("/tmp/buscandoclase.png")
         for card in cards:
+            print("\tCard encontrada:",card.get_attribute("outerHTML"))
             se_hace_click=False
             texto = card.text.replace("\n", " ").replace("\xa0", " ")
             #print(texto)
