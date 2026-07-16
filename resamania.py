@@ -264,7 +264,7 @@ def book_class_resemania(driver, reserva_deseada,gym):
         cards = driver.find_elements(By.XPATH, "//div[contains(@class,'MuiPaper-root')]")
         #print("=============================")
         se_hace_click=False
-        print(f" OuterHTML de la primera card: {cards[0].get_attribute('outerHTML') if cards else 'No hay cards'}")
+        #print(f" OuterHTML de la primera card: {cards[0].get_attribute('outerHTML') if cards else 'No hay cards'}")
         driver.save_screenshot("/tmp/buscandoclase.png")
         for card in cards:
             print("\tCard encontrada:",card.get_attribute("outerHTML"))
