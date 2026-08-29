@@ -198,7 +198,7 @@ def guardar_basico():
                             WHEN VALUES(hora) IS NOT NULL AND VALUES(hora) <> ''
                             THEN TIMESTAMP(
                                 DATE(COALESCE(fecha_evento, NOW())),
-                                VALUES(hora)
+                                LEFT(VALUES(hora), 5)
                             )
                             ELSE fecha_evento
                         END
