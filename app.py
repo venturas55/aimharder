@@ -194,11 +194,15 @@ def guardar_basico():
                         hora = VALUES(hora),
                         clase = VALUES(clase),
                         activo = VALUES(activo),
-                        fecha_evento = TIMESTAMP(
-                            DATE(COALESCE(fecha_evento, NOW())),
-                            VALUES(hora)
-                               )
-                """, (session['id'], d, hora, clase,activo))
+                        fecha_evento = CASE
+                            WHEN VALUES(hora) IS NOT NULL AND VALUES(hora) <> ''
+                            THEN TIMESTAMP(
+                                DATE(COALESCE(fecha_evento, NOW())),
+                                VALUES(hora)
+                            )
+                            ELSE fecha_evento
+                        END
+                """, (session['id'], d, hora, clase, activo))
 
             conn.commit()
             conn.close()
