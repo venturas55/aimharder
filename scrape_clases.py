@@ -317,7 +317,7 @@ def login_to_trainning(username, password):
             driver.save_screenshot("/tmp/aimharder_actividades_final2.png")
 
                   
-            return driver,tmpdir  # ✅ devolver SOLO si todo fue bien   
+            return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
             print(f"{fechalog} - Error during login process: {repr(e)}")
             print("URL en el fallo:", driver.current_url)
@@ -437,7 +437,7 @@ def login_to_resamania(username, password,gym):
             login_button = wait.until(EC.element_to_be_clickable((By.ID,"submit")))
             login_button.click()
             driver.save_screenshot("/tmp/resamania_wait.png")
-            return driver,tmpdir  # ✅ devolver SOLO si todo fue bien   
+            return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
             print(f"{fechalog} - Error during login process: {repr(e)}")
             print("URL en el fallo:", driver.current_url)
@@ -453,7 +453,7 @@ def login_to_resamania(username, password,gym):
             driver.quit()
         return None
 
-def scrape_current_classes(driver, gym, tmpdir):
+def scrape_current_classes(driver, gym):
     try:
         driver.get(f"https://{gym}.aimharder.com/timetable")
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "timetable")))
@@ -504,9 +504,9 @@ def scrape_current_classes(driver, gym, tmpdir):
         return None
     finally:
         driver.quit()
-        shutil.rmtree(tmpdir, ignore_errors=True)
+        #shutil.rmtree(tmpdir, ignore_errors=True)
 
-def scrape_current_classes_trainning(driver, tmpdir):
+def scrape_current_classes_trainning(driver):
     try:
         driver.get("https://www.trainingymapp.com/webtouch/actividades")
         wait = WebDriverWait(driver,15)
@@ -538,9 +538,9 @@ def scrape_current_classes_trainning(driver, tmpdir):
         return None
     finally:
         driver.quit()
-        shutil.rmtree(tmpdir, ignore_errors=True)
+        #shutil.rmtree(tmpdir, ignore_errors=True)
 
-def scrape_current_classes_resemania(driver, gym, tmpdir):
+def scrape_current_classes_resemania(driver, gym):
     try:
         clases_unicas = set()
         horas_unicas = set()
@@ -616,7 +616,7 @@ def scrape_current_classes_resemania(driver, gym, tmpdir):
         return None
     finally:
         driver.quit()
-        shutil.rmtree(tmpdir, ignore_errors=True)
+        #shutil.rmtree(tmpdir, ignore_errors=True)
 
 def save_classes_to_db(datos):
     if datos != None:
@@ -674,23 +674,22 @@ if __name__ == "__main__":
     for usuario in usuarios:
         print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']} {usuario['aimharder_user']} ")
         if(usuario['tipo_app']=="aimharder"):
-            result = login_to_aimharder(usuario['aimharder_user'],usuario['aimharder_pass'])
+            driver = login_to_aimharder(usuario['aimharder_user'],usuario['aimharder_pass'])
         if(usuario['tipo_app']=="trainingmyapp"):
-            result = login_to_trainning(usuario['aimharder_user'],usuario['aimharder_pass'])
+            driver = login_to_trainning(usuario['aimharder_user'],usuario['aimharder_pass'])
         if(usuario['tipo_app']=="resamania"):
-            result = login_to_resamania(usuario['aimharder_user'],usuario['aimharder_pass'],usuario['gym'])
+            driver = login_to_resamania(usuario['aimharder_user'],usuario['aimharder_pass'],usuario['gym'])
 
-        if not result:
+        if not driver:
             print(f"{fechalog} - Error login usuario {usuario['usuario']}")
             continue
 
-        driver, tmpdir = result
         if(usuario['tipo_app']=="aimharder"):
-            result = scrape_current_classes(driver, usuario['gym'], tmpdir)
+            result = scrape_current_classes(driver, usuario['gym'])
         if(usuario['tipo_app']=="trainingmyapp"):
-            result = scrape_current_classes_trainning(driver, tmpdir)
+            result = scrape_current_classes_trainning(driver )
         if(usuario['tipo_app']=="resamania"):
-            result = scrape_current_classes_resemania(driver, tmpdir)
+            result = scrape_current_classes_resemania(driver)
         if not result:
             print(f"{fechalog} - Error scraping usuario {usuario['usuario']}")
             continue
