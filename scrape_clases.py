@@ -65,7 +65,7 @@ def login_to_aimharder(username, password):
 
     # Crear directorio temporal único
     tmpdir = tempfile.mkdtemp(prefix="aimharder-profile-")
-    #print("User data dir que vamos a usar:", tmpdir)
+    print("User data dir que vamos a usar:", tmpdir)
     # Usar el directorio temporal para el perfil
     chrome_options.add_argument(f"--user-data-dir={tmpdir}")
 
@@ -95,7 +95,7 @@ def login_to_aimharder(username, password):
         driver = webdriver.Chrome(options=chrome_options)
         wait = WebDriverWait(driver,15)
 
-        print(f"{fechalog} - Successfully initialized Chromium driver")
+        #print(f"{fechalog} - Successfully initialized Chromium driver")
 
     except Exception as e:
         print(f"{fechalog} - Error initializing Chromium driver: {str(e)}")
@@ -107,8 +107,8 @@ def login_to_aimharder(username, password):
         
         # Wait for the login form to load
         try:
-            wait.until(EC.presence_of_element_located((By.ID, "mail")))
-            #print(f"{fechalog} - Login form found")
+            wait.until(EC.presence_of_element_located((By.NAME, "username")))
+            print(f"{fechalog} - Login form found")
         except Exception as e:
             print(f"{fechalog} - Could not find login form: {str(e)}")
             driver.quit()
@@ -121,37 +121,49 @@ def login_to_aimharder(username, password):
                 cookie_remove_button = driver.find_element(By.CLASS_NAME, "removeCookie")
                 cookie_remove_button.click()
                 #print(f"{fechalog} - Cookie removal button clicked")
-                time.sleep(1)
+
+                # 🔥 CLAVE: esperar a que desaparezca o cambie DOM
+                wait.until(EC.staleness_of(cookie_remove_button))
             except Exception as e:
-                print(f"{fechalog} - Could not find or click cookie removal button: {str(e)}")
+                print(f"{fechalog} - Cookie button not found: {str(e)}")
                 # Continue anyway since this might not be critical
                 pass
+          
+            # 🔥 VOLVER A BUSCAR ELEMENTOS
             # Enter username
-            username_field = driver.find_element(By.ID, "mail")
+            #username_field = driver.find_element(By.ID, "mail")
+            username_field = wait.until(EC.presence_of_element_located((By.NAME, "username")))
             username_field.clear()
             username_field.send_keys(username)
             
             # Enter password
-            password_field = driver.find_element(By.ID, "pw")
+            #password_field = driver.find_element(By.ID, "pw")
+            password_field = wait.until(EC.presence_of_element_located((By.NAME, "password")))
             password_field.clear()
             password_field.send_keys(password)
             
             # Click login button
-            submit_button = driver.find_element(By.ID, "loginSubmit")
+            #submit_button = driver.find_element(By.ID, "loginSubmit")
+            submit_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
             submit_button.click()
             
             # Wait for login to complete
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ahPicTimetable")))
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ahPicReservations")))
             print(f"{fechalog} - Login successful")
             
             # Click reservations
-            timtable_link = driver.find_element(By.CLASS_NAME, "ahPicTimetable")
-            timtable_link.click()
-            #print(f"{fechalog} - Clicked timetable_link link")
+            reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
+            reservations_link.click()
+            #print(f"{fechalog} - Clicked reservations link")
             
-
+            # Wait for the class list to load     
+            if today.weekday() == 6:
+                try:
+                    driver.find_element(By.ID, "nextDay").click()
+                except NoSuchElementException:
+                    print(f"{fechalog} - No se encontró botón nextDay")
         
-            return driver,tmpdir  # ✅ devolver SOLO si todo fue bien   
+            return driver  # ✅ devolver SOLO si todo fue bien   
         except Exception as e:
             print(f"{fechalog} - Error during login process: {str(e)}")
             driver.quit()
