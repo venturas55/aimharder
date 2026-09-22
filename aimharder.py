@@ -543,7 +543,7 @@ if __name__ == "__main__":
                                 print(f"{fechalog} - Día no activo → no se reserva")
                                 continue
 
-                            #print("normalize clase_manana:",clase_manana)
+                            print("normalize clase_manana:",clase_manana)
                             
                             driver = login_to_aimharder(aimharder_user, aimharder_pass)
 
@@ -557,7 +557,7 @@ if __name__ == "__main__":
 
                                 resultado = book_class(driver, clase_manana, nextClase)
                                 print("Resultado:", resultado)
-
+                                print("Clase_mañana:", clase_manana)
                                 gestionar_resultado_email(resultado, email_to, email_to_dev)
 
                             finally:
