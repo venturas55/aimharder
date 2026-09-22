@@ -445,7 +445,7 @@ def build_email_html(title, message, status_color):
     </html>
     """
 
-def gestionar_resultado_email(res, email_to, email_to_dev):
+def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento):
     status = res["status"]
 
     if status not in EMAIL_CONFIG:
@@ -457,15 +457,15 @@ def gestionar_resultado_email(res, email_to, email_to_dev):
     hora = res.get("hora", "N/A")   
     match status:
         case "reservada":
-            message = f"La clase de {clase} a las {hora} se ha reservado con exito. A darle duro."
+            message = f"La clase de {clase} a las {hora} del {fechaDelEvento} se ha reservado con exito. A darle duro."
         case "espera":
-            message = f"La clase de {clase} a las {hora} esta llena, pero se te ha apuntado en lista de espera"
+            message = f"La clase de {clase} a las {hora} del {fechaDelEvento} esta llena, pero se te ha apuntado en lista de espera"
         case "llena":
-            message = f"La clase de {clase}a las {hora} esta llena y el cupo de lista de espera tambien. Lo siento."
+            message = f"La clase de {clase} a las {hora} del {fechaDelEvento} esta llena y el cupo de lista de espera tambien. Lo siento."
         case "no_encontrada":
-            message = f"La clase de {clase} a las {hora} no se ha encontrado entre las clases disponibles para ese dia"
+            message = f"La clase de {clase} a las {hora} del {fechaDelEvento} no se ha encontrado entre las clases disponibles para ese dia"
         case "error":
-            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora}. El desarrollador estará trabajando en ello para solventarlo."
+            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora} del {fechaDelEvento}. El desarrollador estará trabajando en ello para solventarlo."
         case _:
             message = res.get("msg", "Estado desconocido")
     
@@ -523,8 +523,7 @@ if __name__ == "__main__":
                         #print(f"{fechalog} - [{user_id}] Ejecutando con Días: {dias_deseados}")
 
                         # ------------------ DAILY ------------------
-                        #if periodicidad == 'daily' and int(ahora.strftime("%H"))<20:
-                        if periodicidad == 'daily':
+                        if periodicidad == 'daily' and int(ahora.strftime("%H"))<20:
                             print(f" ⏭️ {aimharder_user} tiene daily")
 
                             tomorrow_name = tomorrow_week_map[today.weekday()]
@@ -544,6 +543,7 @@ if __name__ == "__main__":
                                 print(f"{fechalog} - Día no activo → no se reserva")
                                 continue
 
+                            fechaDelEvento= clase_manana["fecha_evento"].strftime("%d-%m-%Y")
                             #print("normalize clase_manana:",clase_manana)
                             
                             driver = login_to_aimharder(aimharder_user, aimharder_pass)
@@ -558,8 +558,8 @@ if __name__ == "__main__":
 
                                 resultado = book_class(driver, clase_manana, nextClase)
                                 print("Resultado:", resultado)
-                                print("Fecha evento:", clase_manana["fecha_evento"])
-                                gestionar_resultado_email(resultado, email_to, email_to_dev)
+
+                                gestionar_resultado_email(resultado, email_to, email_to_dev, fechaDelEvento)
 
                             finally:
                                 driver.quit()
