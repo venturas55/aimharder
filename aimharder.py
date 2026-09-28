@@ -532,19 +532,39 @@ if __name__ == "__main__":
                                 (item for item in reservas if item['dia'] == tomorrow_name),
                                 None
                             )
-                            clase_manana['clase']=normalize(clase_manana['clase'])
-                            clase_manana['hora']=normalize(clase_manana['hora'])
 
+                            # Primero comprobar que existe
                             if not clase_manana:
                                 print(f"{fechalog} - No hay configuración para mañana")
                                 continue
 
+                            # Comprobar si está activo
                             if not clase_manana['activo']:
                                 print(f"{fechalog} - Día no activo → no se reserva")
                                 continue
 
-                            fechaDelEvento= clase_manana["fecha_evento"].strftime("%d-%m-%Y")
-                            #print("normalize clase_manana:",clase_manana)
+                            # Normalizar
+                            clase_manana['clase'] = normalize(clase_manana['clase'])
+                            clase_manana['hora'] = normalize(clase_manana['hora'])
+
+                            # Calcular fecha real del evento
+                            tomorrow = today + timedelta(days=1)
+
+                            # Guardarla también en la BD
+                            cur.execute(
+                                """
+                                UPDATE bookings
+                                SET fecha_evento = %s
+                                WHERE id = %s
+                                """,
+                                (tomorrow, clase_manana['id'])
+                            )
+
+                            # Actualizar también el diccionario en memoria
+                            clase_manana['fecha_evento'] = tomorrow
+
+                            # Fecha bonita para el email
+                            fechaDelEvento = tomorrow.strftime("%d-%m-%Y")
                             
                             driver = login_to_aimharder(aimharder_user, aimharder_pass)
 
@@ -553,7 +573,7 @@ if __name__ == "__main__":
                                 continue
 
                             try:
-                                tomorrow = today + timedelta(days=1)
+                                #tomorrow = today + timedelta(days=1)
                                 nextClase = "wds" + tomorrow.strftime("%Y%m%d")
 
                                 resultado = book_class(driver, clase_manana, nextClase)
@@ -586,17 +606,29 @@ if __name__ == "__main__":
                                         continue
 
                                     proxima = dias.get(reserva['dia'])
-                                    tomorrow = today + timedelta(days=proxima)
+                                    fecha_evento = today + timedelta(days=proxima)
 
-                                    nextClase = "wds" + tomorrow.strftime("%Y%m%d")
+                                    nextClase = "wds" + fecha_evento.strftime("%Y%m%d")
 
-                                    #print(f"{fechalog} - Reservando: {nextClase} - {reserva}")
+                                    # Guardar fecha en BD
+                                    cur.execute(
+                                        """
+                                        UPDATE bookings
+                                        SET fecha_evento = %s
+                                        WHERE id = %s
+                                        """,
+                                        (fecha_evento, reserva['id'])
+                                    )
 
+                                    reserva['fecha_evento'] = fecha_evento
+
+                                    # Normalizar antes de buscar
+                                    reserva['clase'] = normalize(reserva['clase'])
+                                    reserva['hora'] = normalize(reserva['hora'])
+                                    fechaDelEvento = fecha_evento.strftime("%d-%m-%Y")
                                     resultado = book_class(driver, reserva, nextClase)
                                     print("Resultado:", resultado)
-
-                                    gestionar_resultado_email(resultado, email_to, email_to_dev)
-
+                                    gestionar_resultado_email(resultado,email_to, email_to_dev, fechaDelEvento)
                             finally:
                                 driver.quit()
 
