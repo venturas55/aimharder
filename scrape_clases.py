@@ -671,6 +671,7 @@ def get_usuarios():
 
 if __name__ == "__main__":
     usuarios=get_usuarios()
+    driver=""
     for usuario in usuarios:
         print(f"{usuario['id']}   con nombre {usuario['full_name']}  {usuario['email']}  {usuario['gym']} {usuario['aimharder_user']} ")
         if(usuario['tipo_app']=="aimharder"):
@@ -689,7 +690,7 @@ if __name__ == "__main__":
         if(usuario['tipo_app']=="trainingmyapp"):
             result = scrape_current_classes_trainning(driver )
         if(usuario['tipo_app']=="resamania"):
-            result = scrape_current_classes_resemania(driver)
+            result = scrape_current_classes_resemania(driver,usuario['gym'])
         if not result:
             print(f"{fechalog} - Error scraping usuario {usuario['usuario']}")
             continue
