@@ -103,6 +103,12 @@ EMAIL_CONFIG = {
         "color": "#6c757d",
         "to": "dev"
     },
+    "no_cargada": {
+        "subject": "Clase no encontrada ❌",
+        "title": "Clase no cargada",
+        "color": "#ffc107",
+        "to": "user"
+    },
     "error": {
         "subject": "Error en reserva ❌",
         "title": "Error en la reserva",
@@ -161,7 +167,7 @@ def book_class(driver, reserva_deseada, nextClase):
     try:
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bloqueClase")))
     except TimeoutException:
-        return {"status": "error", "msg": "No cargaron las clases"}
+        return {"status": "no_cargada", "msg": "No cargaron las clases"}
 
     time.sleep(3)
 
@@ -445,8 +451,9 @@ def build_email_html(title, message, status_color):
     </html>
     """
 
-def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento):
+def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento,clase_manana):
     status = res["status"]
+    msg = res["msg"]
 
     if status not in EMAIL_CONFIG:
         return
@@ -464,8 +471,10 @@ def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento):
             message = f"La clase de {clase} a las {hora} del {fechaDelEvento} esta llena y el cupo de lista de espera tambien. Lo siento."
         case "no_encontrada":
             message = f"La clase de {clase} a las {hora} del {fechaDelEvento} no se ha encontrado entre las clases disponibles para ese dia"
+        case "no_cargada":
+            message = f"No se ha podido reservar la clase de {clase_manana['clase']} a las {clase_manana['hora']} del {fechaDelEvento}. Probablemente sea festivo, o por algun motivo el gimnasio no ofrece clases ese día."
         case "error":
-            message = f"Ha habido un error en el intento de reserva de la clase de {clase} a las {hora} del {fechaDelEvento}. El desarrollador estará trabajando en ello para solventarlo."
+            message = f"Ha habido un error en el intento de reserva de la clase de {clase_manana['clase']} a las {clase_manana['hora']} del {fechaDelEvento}. El desarrollador estará trabajando en ello para solventarlo."
         case _:
             message = res.get("msg", "Estado desconocido")
     
@@ -579,7 +588,7 @@ if __name__ == "__main__":
                                 resultado = book_class(driver, clase_manana, nextClase)
                                 print("Resultado:", resultado)
 
-                                gestionar_resultado_email(resultado, email_to, email_to_dev, fechaDelEvento)
+                                gestionar_resultado_email(resultado, email_to, email_to_dev, fechaDelEvento,clase_manana)
 
                             finally:
                                 driver.quit()
