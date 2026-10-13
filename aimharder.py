@@ -204,13 +204,15 @@ def book_class(driver, reserva_deseada, nextClase):
                     driver.save_screenshot("/tmp/cancel.png")
                     cancel_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookCancel')]")
                     """ cancel_link.click() """
-                except NoSuchElementException:
                     return {"status": "ya_reservada", 
                             "clase": reserva_deseada['clase'], 
                             "hora": reserva_deseada['hora'],
                             "msg": "La clase ya se encuentra reservada",
                             "box": box_name,
                             "coach": instructor_name}
+                except NoSuchElementException:
+                    return {"status": "error", "msg": "No se encontró botón reservar ni cancelar"}
+                
                 
 
             # CLASE LLENA
