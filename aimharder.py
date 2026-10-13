@@ -453,7 +453,6 @@ def build_email_html(title, message, status_color):
 
 def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento,clase_manana):
     status = res["status"]
-    msg = res["msg"]
 
     if status not in EMAIL_CONFIG:
         return
