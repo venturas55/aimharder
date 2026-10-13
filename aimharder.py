@@ -204,7 +204,7 @@ def book_class(driver, reserva_deseada, nextClase):
                     driver.save_screenshot("/tmp/cancel.png")
                     cancel_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookCancel')]")
                     """ cancel_link.click() """
-                    return {"status": "ya_reservada", 
+                    return {"status": "ya_contratada", 
                             "clase": reserva_deseada['clase'], 
                             "hora": reserva_deseada['hora'],
                             "msg": "La clase ya se encuentra reservada",
