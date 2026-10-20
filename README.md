@@ -1,5 +1,13 @@
 # AimHarder Login Automation
 
+## Aplicación Node.js y React Native
+
+La aplicación de `app.py` tiene una nueva API en [`backend/`](backend/) y un cliente nativo Expo en [`mobile/`](mobile/). Conserva MariaDB/MySQL, cuentas existentes, planificación semanal y configuración de proveedores. Los procesos de automatización Python siguen usando la misma base de datos.
+
+Instalación, contrato API, comprobaciones de esquema y vuelta atrás: [guía de migración](docs/migration.md).
+
+Flask y las plantillas originales se conservan durante la transición.
+
 This Python script uses Selenium to automate the login process for aimharder.com.
 
 ## Requirements

@@ -4,6 +4,13 @@ venv/
 tmp/
 logs/
 database/
+!backend/database/
+!backend/database/*.sql
 log.txt
 __pycache__
+node_modules/
+.expo/
+dist/
+backend/.env
+mobile/.env
 aimharderVPS.log
