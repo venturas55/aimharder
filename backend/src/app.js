@@ -12,7 +12,10 @@ export function createApp({ repository, tokens }) {
   app.use('/api', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
   const authLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-8', legacyHeaders: false,
     handler: (_request, response) => response.status(429).json({ success: false, error: { message: 'Demasiados intentos. Reintenta más tarde.' } }) });
-  app.get('/api/health', (_request, response) => response.json({ success: true }));
+  app.get('/api/health', (_request, response) => {
+    console.log('GET /api/health');
+    response.json({ success: true });
+  });
   app.post('/api/auth/register', authLimit, async (request, response) => {
     const data = registration(request.body || {});
     await repository.register(data, await hashPassword(data.contrasena));
