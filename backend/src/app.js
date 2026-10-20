@@ -17,11 +17,13 @@ export function createApp({ repository, tokens }) {
     response.json({ success: true });
   });
   app.post('/api/auth/register', authLimit, async (request, response) => {
+    console.log('POST /api/auth/register', request.body);
     const data = registration(request.body || {});
     await repository.register(data, await hashPassword(data.contrasena));
     response.status(201).json({ success: true, message: 'Cuenta creada. Inicia sesión.' });
   });
   app.post('/api/auth/login', authLimit, async (request, response) => {
+    console.log('POST /api/auth/login', request.body);
     const usuario = trimmed(request.body?.usuario, 'Usuario', 50);
     const password = field(request.body?.contrasena, 'Contraseña', 256);
     const user = await repository.findUser(usuario);
