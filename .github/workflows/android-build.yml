@@ -1,0 +1,98 @@
+
+name: AimHarder Android - APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: mobile
+
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify configuration
+        run: |
+          set -euo pipefail
+          test -f package.json
+          test -f package-lock.json
+          test -f app.json
+
+          : "${EXPO_PUBLIC_API_URL:?Missing EXPO_PUBLIC_API_URL}"
+          : "${ANDROID_PACKAGE_NAME:?Missing ANDROID_PACKAGE_NAME}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Android application
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("app.json")
+          config = json.loads(path.read_text())
+
+          config["expo"].setdefault("android", {})[
+              "package"
+          ] = os.environ["ANDROID_PACKAGE_NAME"]
+
+          path.write_text(
+              json.dumps(config, indent=2) + "\n"
+          )
+          PY
+
+      - name: Generate Android native project
+        run: |
+          npx expo prebuild \
+            --platform android \
+            --clean \
+            --no-install
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: aimharder-android-apk-${{ github.run_number }}
+          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14

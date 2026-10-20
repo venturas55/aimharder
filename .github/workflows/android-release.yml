@@ -1,0 +1,218 @@
+
+name: AimHarder Android - Release APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aimharder-android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android:
+    name: Build Signed Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: mobile
+
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify configuration
+        run: |
+          set -euo pipefail
+
+          test -f package.json
+          test -f package-lock.json
+          test -f app.json
+
+          : "${EXPO_PUBLIC_API_URL:?Missing API URL}"
+          : "${ANDROID_PACKAGE_NAME:?Missing package name}"
+          : "${ANDROID_KEYSTORE_BASE64:?Missing keystore}"
+          : "${ANDROID_KEYSTORE_PASSWORD:?Missing keystore password}"
+          : "${ANDROID_KEY_ALIAS:?Missing alias}"
+          : "${ANDROID_KEY_PASSWORD:?Missing key password}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Android
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("app.json")
+          config = json.loads(path.read_text())
+
+          android = config["expo"].setdefault("android", {})
+
+          android["package"] = os.environ["ANDROID_PACKAGE_NAME"]
+          android["versionCode"] = int(os.environ["GITHUB_RUN_NUMBER"])
+
+          path.write_text(
+              json.dumps(config, indent=2) + "\n"
+          )
+          PY
+
+      - name: Generate native Android project
+        run: |
+          npx expo prebuild \
+            --platform android \
+            --clean \
+            --no-install
+
+      - name: Prepare signing keystore
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+
+          encoded = "".join(
+              os.environ["ANDROID_KEYSTORE_BASE64"].split()
+          )
+
+          destination = (
+              Path(os.environ["RUNNER_TEMP"])
+              / "aimharder-release.keystore"
+          )
+
+          destination.write_bytes(
+              base64.b64decode(encoded, validate=True)
+          )
+
+          destination.chmod(0o600)
+          PY
+
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/aimharder-release.keystore" >> "$GITHUB_ENV"
+
+      - name: Configure Gradle Release signing
+        run: |
+          set -euo pipefail
+
+          cat > android/app/ci-release-signing.gradle <<'GRADLE'
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          GRADLE
+
+          printf '\napply from: "./ci-release-signing.gradle"\n' >> android/app/build.gradle
+
+      - name: Verify signing credentials
+        run: |
+          set -euo pipefail
+
+          keytool -list \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" > /dev/null
+
+          echo "Release keystore verified"
+
+      - name: Build signed Release APK
+        run: |
+          set -euo pipefail
+
+          cd android
+          chmod +x gradlew
+
+          ./gradlew :app:assembleRelease \
+            --no-daemon \
+            --stacktrace \
+            2>&1 | tee "$RUNNER_TEMP/aimharder-android-build.log"
+
+      - name: Verify APK
+        run: |
+          set -euo pipefail
+
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -f "$APK"
+
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" \
+            -name apksigner -type f | sort -V | tail -1)"
+
+          test -n "$APKSIGNER"
+
+          "$APKSIGNER" verify \
+            --verbose \
+            --print-certs \
+            "$APK"
+
+          echo "Signed APK successfully generated"
+          ls -lh "$APK"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: aimharder-release-${{ github.run_number }}
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aimharder-android-diagnostics-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/aimharder-android-build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Cleanup signing credentials
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/aimharder-release.keystore"
