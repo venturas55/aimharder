@@ -4,7 +4,3 @@ INSERT INTO `bookings` VALUES (7,2,'Martes','11:30 - 10:30','Crosstraining','202
 UNLOCK TABLES;*/
 INSERT INTO `current_classes` (user_id,usuario,class_name) VALUES (1,'xisme25','CrossFit'),(1,'xisme25','HYROX-Endurance'),(1,'xisme25','CrossFit MD'),(1,'xisme25','B. Jiu-jitsu Principiante'),(1,'xisme25','B. Jiu-jitsu Adolescentes'),(1,'xisme25','OPEN MAT'),(1,'xisme25','B. Jiu-jitsu'),(1,'xisme25','B. Jiu-jitsu Avanzado'),(1,'xisme25','Jiu-Jitsu Kids');
 INSERT INTO `current_hours` (user_id,usuario,hora) VALUES (1,'xisme25','09:15 - 10:15'),(1,'xisme25','10:00 - 11:30'),(1,'xisme25','11:30 - 12:30'),(1,'xisme25','10:45 - 11:45');
-
-
-
-1,'xisme25'

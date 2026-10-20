@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export function usePalette() {
   return useColorScheme() === 'dark'
@@ -21,7 +22,7 @@ export function Field({ label, secureTextEntry = false, ...props }) {
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
       <TextInput {...props} accessibilityLabel={label} secureTextEntry={secureTextEntry && !visible} placeholderTextColor={c.muted}
         style={[styles.input, { flex: 1, color: c.text, backgroundColor: c.input, borderColor: c.line }]} />
-      {secureTextEntry && <Pressable onPress={() => setVisible(!visible)} accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'} style={{ padding: 12 }}><Text style={{ color: c.accent }}>{visible ? 'Ocultar' : 'Ver'}</Text></Pressable>}
+      {secureTextEntry && <Pressable onPress={() => setVisible(!visible)} accessibilityRole="button" accessibilityLabel={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'} style={{ padding: 12 }}><Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={24} color={c.accent} accessible={false} /></Pressable>}
     </View>
   </View>;
 }

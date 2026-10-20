@@ -43,7 +43,7 @@ No se modifica el formato de los días ni `fecha_evento`: las actualizaciones co
 
 ## Mobile
 
-Proyecto Expo SDK 58 con JavaScript, React Native, Safe Area Context y SecureStore. Las dependencias se resuelven con `expo install` para coincidir con el SDK: [documentación Expo](https://docs.expo.dev/versions/latest/).
+Proyecto Expo SDK 57 con JavaScript, React Native, Safe Area Context y SecureStore. Las dependencias se resuelven con `expo install` para coincidir con el SDK: [documentación Expo](https://docs.expo.dev/versions/latest/).
 
 Desde `mobile`:
 
@@ -56,7 +56,7 @@ npm start
 
 Para un teléfono físico usa la IP LAN del equipo durante desarrollo y permite el puerto 5052 en el firewall. `localhost` en el teléfono es el propio teléfono. Producción requiere HTTPS. No se añade excepción HTTP a la configuración nativa. Un cambio en `EXPO_PUBLIC_API_URL` requiere reiniciar Metro y actualizar el bundle o recompilar la app distribuida.
 
-Abre con un cliente Expo compatible con SDK 58 o una compilación de desarrollo. No se configuran identificadores, firma, builds de tiendas ni despliegue. Ejecutar desde Windows no valida iOS.
+Abre con un cliente Expo compatible con SDK 57 o una compilación de desarrollo. No se configuran identificadores, firma, builds de tiendas ni despliegue. Ejecutar desde Windows no valida iOS.
 
 Interfaz nativa adaptable a móvil/tablet, claro/oscuro, formularios con teclado, estados de carga/error, siete días, selectores mediante modales nativos y contraseña visible opcional. Al guardar horarios se validan clases/horas contra catálogo del usuario; días inactivos conservan selecciones antiguas. Si falta catálogo, configura proveedor y ejecuta el scraper existente. El móvil no ejecuta Selenium ni muestra reservas como confirmadas por guardar un horario.
 
@@ -90,7 +90,7 @@ npm run bundle
 
 Las pruebas HTTP usan repositorio simulado; verifican autenticación, identidad del propietario, validación y rollback simulado. No equivalen a integración MariaDB ni E2E.
 
-La instalación inicial detectó 22 avisos de auditoría en dependencias móviles (7 moderados, 15 altos), incluidos `braces`, `node-forge` y `uuid` transitivos. Las propuestas automáticas incluyen retroceder Expo/React Native a versiones incompatibles con SDK 58. No se aplica `audit fix --force`; revisa los avisos y las actualizaciones compatibles antes de publicar. La instalación del backend no reportó vulnerabilidades.
+La instalación con SDK 57 reporta 22 avisos de auditoría en dependencias móviles (7 moderados, 15 altos), igual que la instalación anterior con SDK 58. Consulta `npm audit` para el detalle actual. No se aplica `audit fix --force`; revisa los avisos y las actualizaciones compatibles antes de publicar. La instalación del backend no reportó vulnerabilidades.
 
 Antes de sustituir Flask, valida contra una BD de pruebas: login de una cuenta antigua, registro nuevo, duplicados, catálogo por usuario, siete días, guardado de ambos formularios, contraseña conservada/cambiada, `fecha_evento`, reconexión, sesión caducada y aislamiento de dos cuentas. Confirma registros y rollback real con MariaDB. En Android/iOS prueba teclado, modo oscuro, pantalla pequeña, tablet, recuperación de sesión y red caída. Valida después que los trabajadores Python leen la configuración guardada.
 
