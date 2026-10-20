@@ -9,6 +9,7 @@ const frequencies = [{ value: 'hourly', label: 'Horaria' }, { value: 'daily', la
 export default function ScreenDashboard({ token, onLogout }) {
   const c = usePalette();
   const { width, fontScale } = useWindowDimensions();
+  const isWideLayout = width >= 768 && fontScale <= 1.3;
   const hasRoomForColumns = width >= 360 && fontScale <= 1.3;
   const [data, setData] = useState(null);
   const [config, setConfig] = useState(null);
@@ -106,7 +107,7 @@ export default function ScreenDashboard({ token, onLogout }) {
       </View>
   );
   return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, isWideLayout && { maxWidth: 1100, paddingHorizontal: 32 }]}
       refreshControl={<RefreshControl refreshing={loading} enabled={!dirty && !isBusy} onRefresh={() => { if (!dirty && !isBusy) load(); }} tintColor={c.accent} />}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <Text style={styles.eyebrow}>AIMHARDER</Text><Button secondary title="Salir" disabled={isBusy} onPress={onLogout} />
@@ -127,8 +128,8 @@ export default function ScreenDashboard({ token, onLogout }) {
       <View style={{ gap: 6 }}><Text style={styles.eyebrow}>PLANIFICACIÓN</Text><Text style={[styles.heading, { color: c.text }]}>Tu semana</Text>
         <Text style={{ color: c.muted }}>Activa días y elige una clase y horario por día.</Text></View>
       {(!data.classes.length || !data.hours.length) && <Notice text="Catálogo pendiente. Configura gimnasio y espera la ejecución del scraper existente antes de activar días." />}
-      <View style={{ backgroundColor: c.card, borderColor: c.line, borderWidth: 1, borderRadius: 18, overflow: 'hidden' }}>
-        {bookings.map((row, index) => <View key={row.dia} style={{ paddingHorizontal: 14, paddingVertical: 8, gap: 6, borderTopWidth: index ? 1 : 0, borderTopColor: c.line }}>
+      <View style={isWideLayout ? { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'flex-start' } : { backgroundColor: c.card, borderColor: c.line, borderWidth: 1, borderRadius: 18, overflow: 'hidden' }}>
+        {bookings.map((row, index) => <View key={row.dia} style={[{ paddingHorizontal: 14, paddingVertical: 8, gap: 6, borderTopWidth: index ? 1 : 0, borderTopColor: c.line }, isWideLayout && { width: '48.9%', borderTopWidth: 1, borderWidth: 1, borderColor: row.activo ? c.accent : c.line, borderRadius: 16, backgroundColor: c.card }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 44, gap: 8 }}>
             <Text style={{ color: row.activo ? c.text : c.muted, fontSize: 16, fontWeight: '700', flex: 1 }}>{row.dia === 'Miercoles' ? 'Miércoles' : row.dia === 'Sabado' ? 'Sábado' : row.dia}</Text>
             {!row.activo && <Text style={{ color: c.muted, fontSize: 12 }}>Descanso</Text>}

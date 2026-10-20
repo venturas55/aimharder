@@ -1,0 +1,143 @@
+name: AimHarder iOS - Ad Hoc iPhone y iPad
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aimharder-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ios:
+    name: Build IPA Ad Hoc
+    runs-on: macos-26
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+        working-directory: mobile
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_NO_GIT_STATUS: '1'
+      RCT_USE_RN_DEP: '0'
+      RCT_USE_PREBUILT_RNCORE: '0'
+      APPLE_BUNDLE_ID: ${{ vars.APPLE_BUNDLE_ID }}
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+      IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+      IOS_ADHOC_PROFILE_BASE64: ${{ secrets.IOS_ADHOC_PROFILE_BASE64 }}
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify project directory
+        run: |
+          test -f package.json || { echo 'Missing mobile/package.json'; exit 1; }
+          test -f package-lock.json || { echo 'Missing mobile/package-lock.json required by npm ci'; exit 1; }
+          test -f app.json || test -f app.config.js || test -f app.config.ts || { echo 'Expo config not found'; exit 1; }
+          test -f scripts/ios_prepare_signing.sh
+          test -f scripts/ios_build_archive.sh
+          test -f scripts/verify_expo_config.py
+
+      - name: Verify build variables
+        run: |
+          : "${APPLE_BUNDLE_ID:?Missing GitHub variable APPLE_BUNDLE_ID}"
+          : "${APPLE_TEAM_ID:?Missing GitHub variable APPLE_TEAM_ID}"
+          : "${EXPO_PUBLIC_API_URL:?Missing GitHub variable EXPO_PUBLIC_API_URL}"
+          : "${IOS_P12_BASE64:?Missing secret IOS_P12_BASE64}"
+          : "${IOS_P12_PASSWORD:?Missing secret IOS_P12_PASSWORD}"
+          : "${IOS_ADHOC_PROFILE_BASE64:?Missing secret IOS_ADHOC_PROFILE_BASE64}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Select Xcode
+        run: |
+          XCODE_APP="${XCODE_APP:-/Applications/Xcode_26.6.app}"
+          if [ -d "$XCODE_APP/Contents/Developer" ]; then
+            sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          else
+            echo "Requested Xcode path not found: $XCODE_APP; using installed default"
+          fi
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure iOS bundle identifier
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path('app.json')
+          config = json.loads(path.read_text())
+          config['expo'].setdefault('ios', {})['bundleIdentifier'] = os.environ['APPLE_BUNDLE_ID']
+          path.write_text(json.dumps(config, indent=2) + '\n')
+          PY
+
+      - name: Verify Expo config
+        run: |
+          npx expo config --type public --json > "$RUNNER_TEMP/expo-config.json"
+          python3 scripts/verify_expo_config.py "$RUNNER_TEMP/expo-config.json"
+
+      - name: Generate iOS native project
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install CocoaPods
+        run: |
+          set -euo pipefail
+          gem install cocoapods --version 1.16.2 --no-document
+          cd ios
+          pod install --repo-update 2>&1 | tee "$RUNNER_TEMP/aimharder-pods.log"
+
+      - name: Prepare Ad Hoc signing
+        run: bash scripts/ios_prepare_signing.sh
+
+      - name: Archive and export Ad Hoc IPA
+        run: bash scripts/ios_build_archive.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: aimharder-adhoc-${{ github.run_number }}
+          path: mobile/output/*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aimharder-diagnostics-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/aimharder-archive.log
+            ${{ runner.temp }}/aimharder-export.log
+            ${{ runner.temp }}/aimharder-pods.log
+            ${{ runner.temp }}/AimHarderArchive.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Cleanup signing keychain and profile
+        if: always()
+        working-directory: .
+        run: |
+          if [ -n "${SIGNING_PROFILE_PATH:-}" ]; then rm -f "$SIGNING_PROFILE_PATH"; fi
+          if [ -n "${SIGNING_XCODE_PROFILE_PATH:-}" ]; then rm -f "$SIGNING_XCODE_PROFILE_PATH"; fi
+          security delete-keychain "$RUNNER_TEMP/aimharder-signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/aimharder-dist.p12" "$RUNNER_TEMP/aimharder-adhoc.mobileprovision" "$RUNNER_TEMP/aimharder-adhoc.plist" "$RUNNER_TEMP/aimharder-identities.txt" "$RUNNER_TEMP/aimharder-export-options.plist"

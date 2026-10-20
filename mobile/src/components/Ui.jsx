@@ -35,7 +35,7 @@ export function Select({ label, value, options, onChange, disabled, compact = fa
       <Text style={{ color: value ? c.text : c.muted }}>{options.find(option => option.value === value)?.label || value || (compact ? `${label}…` : 'Seleccionar…')} ▾</Text>
     </Pressable>
     <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }}><View style={{ padding: 24, flex: 1, gap: 16 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }}><View style={{ padding: 24, flex: 1, gap: 16, width: '100%', maxWidth: 640, alignSelf: 'center' }}>
         <Text style={[styles.heading, { color: c.text }]}>{label}</Text>
         <FlatList data={options} keyExtractor={item => item.value} ListEmptyComponent={<Text style={{ color: c.muted }}>Sin opciones. Catálogo pendiente de sincronización.</Text>}
           renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityState={{ selected: item.value === value }} onPress={() => { onChange(item.value); setOpen(false); }}

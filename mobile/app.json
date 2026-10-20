@@ -2,6 +2,7 @@
   "expo": {
     "name": "AimHarder",
     "slug": "aimharder-mobile",
+    "icon": "./src/assets/Icono de calendario fitness morado.png",
     "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",

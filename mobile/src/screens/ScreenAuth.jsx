@@ -29,7 +29,7 @@ export default function ScreenAuth({ onLogin }) {
     finally { submitting.current = false; setBusy(false); }
   }
   return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { flexGrow: 1, justifyContent: 'center' }]}>
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.content, { maxWidth: 560, flexGrow: 1, justifyContent: 'center' }]}>
       <View style={{ gap: 14, paddingVertical: 20 }}><Text style={styles.eyebrow}>AIMHARDER / TU RUTINA</Text>
         <Text style={[styles.heading, { fontSize: 40, color: c.text }]}>Entrena más.{ '\n' }Organiza menos.</Text>
         <Text style={{ color: c.muted, fontSize: 16, lineHeight: 24 }}>Tu semana, tus clases, todo bajo control.</Text></View>
