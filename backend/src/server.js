@@ -38,10 +38,12 @@ try {
   );
   await pool.query("SELECT user_id, usuario, hora FROM current_hours LIMIT 0");
   const [indexes] = await pool.query("SHOW INDEX FROM bookings");
-  const uniqueIndexes = Map.groupBy(
-    indexes.filter((row) => Number(row.Non_unique) === 0),
-    (row) => row.Key_name,
-  );
+  const uniqueIndexes = new Map();
+  for (const row of indexes) {
+    if (Number(row.Non_unique) !== 0) continue;
+    if (!uniqueIndexes.has(row.Key_name)) uniqueIndexes.set(row.Key_name, []);
+    uniqueIndexes.get(row.Key_name).push(row);
+  }
   const hasWeeklyKey = [...uniqueIndexes.values()].some(
     (rows) =>
       rows
