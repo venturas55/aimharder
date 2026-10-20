@@ -3,6 +3,7 @@ const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
 export async function request(path, { token, method = "GET", body } = {}) {
   if (!baseUrl || !/^https?:\/\//.test(baseUrl))
     throw new Error("Configura EXPO_PUBLIC_API_URL en mobile/.env");
+  console.log(`Request ${method} ${baseUrl}${path}`);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {

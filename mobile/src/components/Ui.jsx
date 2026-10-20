@@ -26,13 +26,13 @@ export function Field({ label, secureTextEntry = false, ...props }) {
     </View>
   </View>;
 }
-export function Select({ label, value, options, onChange, disabled }) {
+export function Select({ label, value, options, onChange, disabled, compact = false }) {
   const c = usePalette();
   const [open, setOpen] = useState(false);
-  return <View style={styles.field}><Text style={{ color: c.muted, fontWeight: '600' }}>{label}</Text>
+  return <View style={compact ? { minWidth: 0 } : styles.field}>{!compact && <Text style={{ color: c.muted, fontWeight: '600' }}>{label}</Text>}
     <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={`${label}: ${value || 'Sin seleccionar'}`} accessibilityState={{ disabled: !!disabled }}
-      onPress={() => setOpen(true)} style={[styles.input, { backgroundColor: c.input, borderColor: c.line, opacity: disabled ? 0.45 : 1 }]}>
-      <Text style={{ color: value ? c.text : c.muted }}>{options.find(option => option.value === value)?.label || value || 'Seleccionar…'} ▾</Text>
+      onPress={() => setOpen(true)} style={[styles.input, compact && { minHeight: 44, paddingHorizontal: 10, paddingVertical: 10 }, { backgroundColor: c.input, borderColor: c.line, opacity: disabled ? 0.45 : 1 }]}>
+      <Text style={{ color: value ? c.text : c.muted }}>{options.find(option => option.value === value)?.label || value || (compact ? `${label}…` : 'Seleccionar…')} ▾</Text>
     </Pressable>
     <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }}><View style={{ padding: 24, flex: 1, gap: 16 }}>

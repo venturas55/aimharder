@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { Button, Field, Notice, Select, styles, usePalette } from '../components/Ui';
 import { request } from '../services/api-service';
 
@@ -8,6 +8,8 @@ const frequencies = [{ value: 'hourly', label: 'Horaria' }, { value: 'daily', la
 
 export default function ScreenDashboard({ token, onLogout }) {
   const c = usePalette();
+  const { width, fontScale } = useWindowDimensions();
+  const hasRoomForColumns = width >= 360 && fontScale <= 1.3;
   const [data, setData] = useState(null);
   const [config, setConfig] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -64,7 +66,14 @@ export default function ScreenDashboard({ token, onLogout }) {
       const result = await request(`/${section}`, { token, method: 'PUT', body });
       if (alive.current) {
         setMessage(result.message);
-        if (section === 'config') setConfig(previous => ({ ...previous, has_password: true, aimharder_pass: '' }));
+        if (section === 'config') {
+          setData(previous => ({ ...previous, config: {
+            tipo_app: body.tipo_app, gym: body.gym, periodicidad: body.periodicidad,
+            aimharder_user: body.aimharder_user, has_password: true,
+          } }));
+          setConfig(previous => ({ ...previous, has_password: true, aimharder_pass: '' }));
+        }
+        if (section === 'bookings') setData(previous => ({ ...previous, bookings: body.bookings }));
         setDirtyForms(previous => ({ ...previous, [section]: false }));
       }
     } catch (error) { await handleError(error); }
@@ -72,19 +81,16 @@ export default function ScreenDashboard({ token, onLogout }) {
   }
   if (!data) return <View style={[styles.content, { flex: 1, justifyContent: 'center' }]}>{loading ? <ActivityIndicator color={c.accent} size="large" /> : <><Notice text={error} error /><Button title="Reintentar" onPress={load} /><Button secondary title="Salir" onPress={onLogout} /></>}</View>;
   const isBusy = !!saving || loading;
-  return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={loading} enabled={!dirty && !isBusy} onRefresh={() => { if (!dirty && !isBusy) load(); }} tintColor={c.accent} />}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <Text style={styles.eyebrow}>AIMHARDER</Text><Button secondary title="Salir" disabled={isBusy} onPress={onLogout} />
-      </View>
-      <View style={{ gap: 6 }}><Text style={[styles.heading, { color: c.text }]}>Hola, {data.user.full_name || data.user.usuario}</Text>
-        <Text style={{ color: c.muted }}>{data.user.usuario} · {data.user.email}</Text></View>
-      <Notice text={error} error /><Notice text={message} />
-      <View style={[styles.card, { backgroundColor: '#211342', borderColor: '#38265f' }]}>
-        <Text style={styles.eyebrow}>TU PRÓXIMO OBJETIVO</Text><Text style={[styles.heading, { color: '#fff' }]}>Una semana a tu ritmo.</Text>
-        <Text style={{ color: '#d0c4eb', lineHeight: 23 }}>{bookings.filter(row => row.activo).length} días activos. El servicio de reservas procesa tu planificación según la configuración guardada.</Text>
-      </View>
+  const activeBookings = data.bookings.filter(row => row.activo);
+  const savedConfig = data.config;
+  const isGymConfigured = Boolean(
+    providers.some(provider => provider.value === savedConfig.tipo_app)
+    && savedConfig.gym?.trim()
+    && savedConfig.aimharder_user?.trim()
+    && savedConfig.has_password
+    && frequencies.some(frequency => frequency.value === savedConfig.periodicidad)
+  );
+  const gymCard = (
       <View style={[styles.card, { backgroundColor: c.card, borderColor: c.line }]}>
         <Text style={[styles.heading, { color: c.text }]}>Conecta tu gimnasio</Text>
         <Text style={{ color: c.muted }}>Proveedor, credenciales y frecuencia de automatización.</Text>
@@ -98,19 +104,49 @@ export default function ScreenDashboard({ token, onLogout }) {
           <Button title="Guardar configuración" busy={saving === 'config'} disabled={isBusy} onPress={() => save('config')} />
         </>}
       </View>
+  );
+  return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={loading} enabled={!dirty && !isBusy} onRefresh={() => { if (!dirty && !isBusy) load(); }} tintColor={c.accent} />}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <Text style={styles.eyebrow}>AIMHARDER</Text><Button secondary title="Salir" disabled={isBusy} onPress={onLogout} />
+      </View>
+      <View style={{ gap: 6 }}><Text style={[styles.heading, { color: c.text }]}>Hola, {data.user.full_name || data.user.usuario}</Text>
+        <Text style={{ color: c.muted }}>{data.user.usuario} · {data.user.email}</Text></View>
+      <Notice text={error} error /><Notice text={message} />
+      <View style={[styles.card, { backgroundColor: '#211342', borderColor: '#38265f' }]}>
+        <Text style={styles.eyebrow}>OBJETIVO SEMANAL</Text><Text style={[styles.heading, { color: '#fff' }]}>A tu ritmo.</Text>
+        <Text style={{ color: '#d0c4eb', lineHeight: 15 }}>Vas a entrenar {activeBookings.length} días esta semana:</Text>
+        {activeBookings.map(row => <View key={row.dia} style={{ gap: 4, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#493568' }}>
+          <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{row.dia === 'Miercoles' ? 'Miércoles' : row.dia === 'Sabado' ? 'Sábado' : row.dia}</Text>
+          <Text style={{ color: '#d0c4eb', lineHeight: 15 }}>{row.hora || 'Horario pendiente'} - {row.clase || 'Clase pendiente'}</Text>
+        </View>)}
+        {!activeBookings.length && <Text style={{ color: '#d0c4eb', lineHeight: 15 }}>Activa días y guarda tu horario para ver aquí tus próximas clases.</Text>}
+      </View>
+      {!isGymConfigured && gymCard}
       <View style={{ gap: 6 }}><Text style={styles.eyebrow}>PLANIFICACIÓN</Text><Text style={[styles.heading, { color: c.text }]}>Tu semana</Text>
         <Text style={{ color: c.muted }}>Activa días y elige una clase y horario por día.</Text></View>
       {(!data.classes.length || !data.hours.length) && <Notice text="Catálogo pendiente. Configura gimnasio y espera la ejecución del scraper existente antes de activar días." />}
-      {bookings.map(row => <View key={row.dia} style={[styles.card, { backgroundColor: c.card, borderColor: row.activo ? c.accent : c.line }]}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: c.text, fontSize: 20, fontWeight: '700' }}>{row.dia === 'Miercoles' ? 'Miércoles' : row.dia === 'Sabado' ? 'Sábado' : row.dia}</Text>
-          <Switch accessibilityLabel={`Activar ${row.dia}`} value={row.activo} disabled={isBusy} trackColor={{ true: '#7d58de', false: c.line }} onValueChange={value => changeDay(row.dia, 'activo', value)} />
-        </View>
-        <Select label="Horario" value={row.hora} disabled={!row.activo || isBusy} options={data.hours.map(value => ({ value, label: value }))} onChange={value => changeDay(row.dia, 'hora', value)} />
-        <Select label="Clase" value={row.clase} disabled={!row.activo || isBusy} options={data.classes.map(value => ({ value, label: value }))} onChange={value => changeDay(row.dia, 'clase', value)} />
-      </View>)}
+      <View style={{ backgroundColor: c.card, borderColor: c.line, borderWidth: 1, borderRadius: 18, overflow: 'hidden' }}>
+        {bookings.map((row, index) => <View key={row.dia} style={{ paddingHorizontal: 14, paddingVertical: 8, gap: 6, borderTopWidth: index ? 1 : 0, borderTopColor: c.line }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 44, gap: 8 }}>
+            <Text style={{ color: row.activo ? c.text : c.muted, fontSize: 16, fontWeight: '700', flex: 1 }}>{row.dia === 'Miercoles' ? 'Miércoles' : row.dia === 'Sabado' ? 'Sábado' : row.dia}</Text>
+            {!row.activo && <Text style={{ color: c.muted, fontSize: 12 }}>Descanso</Text>}
+            <Switch accessibilityLabel={`Activar ${row.dia}`} value={row.activo} disabled={isBusy} trackColor={{ true: '#7d58de', false: c.line }} onValueChange={value => changeDay(row.dia, 'activo', value)} />
+          </View>
+          {row.activo && <View style={{ flexDirection: hasRoomForColumns ? 'row' : 'column', gap: 8, paddingBottom: 4 }}>
+            <View style={hasRoomForColumns ? { flex: 1, minWidth: 0 } : undefined}>
+              <Select compact label="Horario" value={row.hora} disabled={isBusy} options={data.hours.map(value => ({ value, label: value }))} onChange={value => changeDay(row.dia, 'hora', value)} />
+            </View>
+            <View style={hasRoomForColumns ? { flex: 1, minWidth: 0 } : undefined}>
+              <Select compact label="Clase" value={row.clase} disabled={isBusy} options={data.classes.map(value => ({ value, label: value }))} onChange={value => changeDay(row.dia, 'clase', value)} />
+            </View>
+          </View>}
+        </View>)}
+      </View>
       <Button title="Guardar horario semanal" busy={saving === 'bookings'} disabled={isBusy} onPress={() => save('bookings')} />
       {dirty && <Text style={{ color: c.muted, lineHeight: 22 }}>Cambios sin guardar. Guarda cada formulario modificado antes de recargar.</Text>}
+      {isGymConfigured && gymCard}
       <Text style={{ color: c.muted, textAlign: 'center', fontSize: 12 }}>AimHarder · Guardian del faro</Text>
     </ScrollView>
   </KeyboardAvoidingView>;
