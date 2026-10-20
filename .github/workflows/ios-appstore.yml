@@ -260,6 +260,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v5
+        with:
+          app-path: mobile/output/AimHarder.ipa
+          issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          wait-for-processing: 'true'
+
+
       - name: Upload diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
