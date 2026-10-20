@@ -92,20 +92,26 @@ EMAIL_CONFIG = {
         "to": "user"
     },
     "llena": {
-        "subject": "Clase llena ❌",
+        "subject": "Clase llena ⚠️",
         "title": "Clase llena",
         "color": "#dc3545",
         "to": "user"
     },
     "no_encontrada": {
-        "subject": "Clase no encontrada ❌",
+        "subject": "Clase no encontrada 🔎",
         "title": "Clase no encontrada",
         "color": "#6c757d",
         "to": "dev"
     },
     "no_cargada": {
-        "subject": "Clase no encontrada ❌",
+        "subject": "Clase no encontrada 🌐📥",
         "title": "Clase no cargada",
+        "color": "#ff075a",
+        "to": "user"
+    },
+    "ya_contratada": {
+        "subject": "Clase ya reservada 🤪",
+        "title": "Clase ya reservada",
         "color": "#ffc107",
         "to": "user"
     },
@@ -194,7 +200,20 @@ def book_class(driver, reserva_deseada, nextClase):
                 reserve_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookClass')]")
                 reserve_link.click()
             except NoSuchElementException:
-                return {"status": "error", "msg": "No se encontró botón reservar"}
+                try:
+                    driver.save_screenshot("/tmp/cancel.png")
+                    cancel_link = block.find_element(By.XPATH, ".//a[contains(@onclick, 'bookCancel')]")
+                    """ cancel_link.click() """
+                    return {"status": "ya_contratada", 
+                            "clase": reserva_deseada['clase'], 
+                            "hora": reserva_deseada['hora'],
+                            "msg": "La clase ya se encuentra reservada",
+                            "box": box_name,
+                            "coach": instructor_name}
+                except NoSuchElementException:
+                    return {"status": "error", "msg": "No se encontró botón reservar ni cancelar"}
+                
+                
 
             # CLASE LLENA
             try:
@@ -453,7 +472,6 @@ def build_email_html(title, message, status_color):
 
 def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento,clase_manana):
     status = res["status"]
-    msg = res["msg"]
 
     if status not in EMAIL_CONFIG:
         return
@@ -475,6 +493,8 @@ def gestionar_resultado_email(res, email_to, email_to_dev, fechaDelEvento,clase_
             message = f"No se ha podido reservar la clase de {clase_manana['clase']} a las {clase_manana['hora']} del {fechaDelEvento}. Probablemente sea festivo, o por algun motivo el gimnasio no ofrece clases ese día."
         case "error":
             message = f"Ha habido un error en el intento de reserva de la clase de {clase_manana['clase']} a las {clase_manana['hora']} del {fechaDelEvento}. El desarrollador estará trabajando en ello para solventarlo."
+        case "ya_contratada":
+            message = f"La clase de {clase_manana['clase']} a las {clase_manana['hora']} del {fechaDelEvento} ya se encontraba reservada."
         case _:
             message = res.get("msg", "Estado desconocido")
     
