@@ -374,6 +374,7 @@ def login_to_aimharder(username, password):
             #submit_button = driver.find_element(By.ID, "loginSubmit")
             driver.save_screenshot("/tmp/submit.png")
             submit_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+            print(f"{fechalog} - Submit button found")
             submit_button.click()
             
             # Wait for login to complete
@@ -381,7 +382,7 @@ def login_to_aimharder(username, password):
             print(f"{fechalog} - Login successful")
             
             # Click reservations
-            driver.save_screenshot("/tmp/submit.png")
+            driver.save_screenshot("/tmp/successful.png")
             reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
             driver.save_screenshot("/tmp/reservations.png")
             print(f"{fechalog} - Reservations link found")
