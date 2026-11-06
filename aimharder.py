@@ -383,7 +383,8 @@ def login_to_aimharder(username, password):
             
             # Click reservations
             driver.save_screenshot("/tmp/successful.png")
-            reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
+            #reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
+            reservations_link = driver.find_element(By.CSS_SELECTOR, 'div[data-rail-item-id="CALENDAR"] a')
             driver.save_screenshot("/tmp/reservations.png")
             print(f"{fechalog} - Reservations link found")
             reservations_link.click()
