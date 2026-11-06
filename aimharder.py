@@ -342,6 +342,7 @@ def login_to_aimharder(username, password):
         try:
             # Click cookie remove button
             try:
+                driver.save_screenshot("/tmp/cookie.png")
                 cookie_remove_button = driver.find_element(By.CLASS_NAME, "removeCookie")
                 cookie_remove_button.click()
                 #print(f"{fechalog} - Cookie removal button clicked")
@@ -356,18 +357,22 @@ def login_to_aimharder(username, password):
             # 🔥 VOLVER A BUSCAR ELEMENTOS
             # Enter username
             #username_field = driver.find_element(By.ID, "mail")
+            driver.save_screenshot("/tmp/form.png")
             username_field = wait.until(EC.presence_of_element_located((By.NAME, "username")))
+            print(f"{fechalog} - Username field  found")
             username_field.clear()
             username_field.send_keys(username)
             
             # Enter password
             #password_field = driver.find_element(By.ID, "pw")
             password_field = wait.until(EC.presence_of_element_located((By.NAME, "password")))
+            print(f"{fechalog} - Password field found")
             password_field.clear()
             password_field.send_keys(password)
             
             # Click login button
             #submit_button = driver.find_element(By.ID, "loginSubmit")
+            driver.save_screenshot("/tmp/submit.png")
             submit_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
             submit_button.click()
             
@@ -376,7 +381,10 @@ def login_to_aimharder(username, password):
             print(f"{fechalog} - Login successful")
             
             # Click reservations
+            driver.save_screenshot("/tmp/submit.png")
             reservations_link = driver.find_element(By.CLASS_NAME, "ahPicReservations")
+            driver.save_screenshot("/tmp/reservations.png")
+            print(f"{fechalog} - Reservations link found")
             reservations_link.click()
             #print(f"{fechalog} - Clicked reservations link")
             
