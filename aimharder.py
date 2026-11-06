@@ -378,7 +378,7 @@ def login_to_aimharder(username, password):
             submit_button.click()
             
             # Wait for login to complete
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ahPicReservations")))
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-rail-item-id="CALENDAR"] a')))
             print(f"{fechalog} - Login successful")
             
             # Click reservations
