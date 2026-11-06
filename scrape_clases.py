@@ -640,7 +640,7 @@ def save_classes_to_db(datos):
 
                 # Borrar las que ya no están
                 placeholders = ','.join(['%s'] * len(clases))
-                cur.execute(f"DELETE FROM current_classes WHERE user_id=%s AND class_name NOT IN ({placeholders})", [user_id] + clases )
+                """ cur.execute(f"DELETE FROM current_classes WHERE user_id=%s AND class_name NOT IN ({placeholders})", [user_id] + clases ) """
 
             # --- HORAS ---
             if horas:
@@ -651,10 +651,7 @@ def save_classes_to_db(datos):
                 )
 
                 placeholders = ','.join(['%s'] * len(horas))
-                cur.execute(
-                    f"DELETE FROM current_hours WHERE user_id=%s AND hora NOT IN ({placeholders})",
-                    [user_id] + horas
-                )
+                """   cur.execute(f"DELETE FROM current_hours WHERE user_id=%s AND hora NOT IN ({placeholders})", [user_id] + horas) """
     
             conn.commit()
             print(f"SCRAPPING - Clases actualizadas para {datos['usuario']}:\nClases: {datos['clases']}\nHoras: {datos['horas']}")
