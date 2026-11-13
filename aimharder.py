@@ -1,3 +1,17 @@
+import sys
+
+if __name__ == "__main__":
+    target_user_id = None
+    if len(sys.argv) > 2:
+        sys.exit(0)
+    if len(sys.argv) == 2:
+        try:
+            target_user_id = int(sys.argv[1])
+        except ValueError:
+            sys.exit(0)
+        if target_user_id <= 0:
+            sys.exit(0)
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,7 +23,6 @@ import time
 from datetime import date,datetime, timedelta
 import os
 import subprocess
-import sys
 import pymysql
 import json
 import smtplib
@@ -542,8 +555,12 @@ if __name__ == "__main__":
     try:
         with conn:
             with conn.cursor() as cur:
-                # Obtener configuraciones de todos los usuarios que tengan una
-                cur.execute("SELECT * from usuarios u LEFT JOIN configs c ON u.id=c.user_id")
+                # Sin parámetro se conserva la ejecución para todos los usuarios.
+                query = "SELECT * from usuarios u LEFT JOIN configs c ON u.id=c.user_id"
+                if target_user_id is None:
+                    cur.execute(query)
+                else:
+                    cur.execute(query + " WHERE u.id=%s", (target_user_id,))
                 usuarios = cur.fetchall()
                 for usuario in usuarios:
                     tipo_app = usuario['tipo_app']
